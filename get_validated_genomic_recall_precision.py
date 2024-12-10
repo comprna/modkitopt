@@ -25,11 +25,13 @@ def main():
                         default=None,
                         required=False)
     parser.add_argument("-a", "--aggregate",
+                        choices=["max", "avg"],
                         help='Method for handling aggregated transcripts at same genomic location.\n'
                             '<max/avg> ; Default is max',
                         default= "max",
                         required=False)
     parser.add_argument("-m", "--metric",
+                        choices=["model2", "rate"],
                         help='Metric for selecting sites.'
                             '<model2/rate> ; Default is model2',
                         default= "model2",
@@ -53,12 +55,6 @@ def main():
     args.min_stoich = 0.8
 
     st = time.time()
-
-    if args.metric not in ["model2","rate"]:
-        raise ("--metric must be either model2 or rate")
-
-    if args.aggregate not in ["max","avg"]:
-        raise ("--aggregate must be either max or avg")
 
     if args.discard:
         with open(args.discard,"rb") as p:
