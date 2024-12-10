@@ -52,13 +52,7 @@ def main():
     args.discard = None
     args.min_stoich = 0.8
 
-
     st = time.time()
-
-    validated = args.validated
-    predicted_path = args.input_bed
-    out_path = args.output
-
 
     if args.metric not in ["model2","rate"]:
         raise ("--metric must be either model2 or rate")
@@ -72,7 +66,7 @@ def main():
     else:
         discard_set=set()
 
-    with open(validated,"rb") as p:
+    with open(args.validated,"rb") as p:
         validated_set = pickle.load(p)
 
 
@@ -83,7 +77,7 @@ def main():
     preds_dct_all = {}
 
     # Parse site level info to and store site thesholds
-    with open(predicted_path) as f:
+    with open(args.input_bed) as f:
         f.readline()
         for line in f:
             line_lst = line.strip().split("\t")
@@ -198,7 +192,7 @@ def main():
         out_vals_all.append([thresh, 0, 0])
         index_t += 1
 
-    with open(out_path, "w+") as of:
+    with open(args.output, "w+") as of:
         of.write("site_threshold\tvalidated_called\tvalidated_rate\tall_called\tall_rate\tvalidated_precision\n")
         for i, row in enumerate(out_vals):
             thresh, validated_freq, validated_pred = row
