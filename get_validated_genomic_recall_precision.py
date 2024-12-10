@@ -56,34 +56,33 @@ def main():
 
     st = time.time()
 
+    # Load list of sites to discard
     if args.discard:
         with open(args.discard,"rb") as p:
-            discard_set = pickle.load(p)
+            discard_sites = pickle.load(p)
     else:
-        discard_set=set()
+        discard_sites = set()
 
+    # Load list of validated sites
     with open(args.validated,"rb") as p:
-        validated_set = pickle.load(p)
-
-
-    p_lst_val, p_lst_all = [], [] # TODO: Not necessary
-    validated_tested = 0
-
-    preds_dct_val = {}
-    preds_dct_all = {}
+        validated_sites = pickle.load(p)
 
     # Parse site level info to and store site thesholds
+    preds_dct_val = {}
+    preds_dct_all = {}
     with open(args.input_bed) as f:
-        f.readline()
+        f.readline() # Pass over header
         for line in f:
-            line_lst = line.strip().split("\t")
-            coverage, stoich, prob = line_lst[-3:]
-            contig, start, end = line_lst[:3]
+            fields = line.strip().split("\t")
+            coverage, stoich, prob = fields[-3:]
+            contig, start, end = fields[:3]
             site_index = f"{contig}_{end}"
 
+            # If sites are selected based on modification rate, then... TODO:stefan what is logic here?
             if args.metric == "rate":
                 prob = stoich
 
+            # Some m6A stoichiometry predictors output None if... TODO:stefan
             try:
                 if float(stoich) > args.min_stoich:
                     p_predicted = float(prob)
@@ -93,20 +92,26 @@ def main():
                 print(stoich, prob, "skipped")
                 continue
 
-            if site_index in discard_set:
+            # Skip over this site if it needs to be discarded
+            if site_index in discard_sites:
                 continue
 
+            # Aggregate transcriptomic sites corresponding to the same genomic
+            # site by taking the transcriptomic site with maximum stoichiometry
             if args.aggregate == "max":
                 if site_index in preds_dct_all:
-                    preds_dct_all[site_index] = max(preds_dct_all[site_index], p_predicted) # store maximum probability if multiple transcripts
+                    preds_dct_all[site_index] = max(preds_dct_all[site_index], p_predicted)
                 else:
-                    preds_dct_all[site_index] = p_predicted # store maximum probability if multiple transcripts
-                if site_index in validated_set:
-                    if site_index in preds_dct_val:    # store maximum probability if multiple transcripts
+                    preds_dct_all[site_index] = p_predicted
+                if site_index in validated_sites:
+                    if site_index in preds_dct_val:
                             preds_dct_val[site_index] = max(preds_dct_val[site_index], p_predicted)
                     else:
                         preds_dct_val[site_index] = p_predicted
 
+            # Aggregate transcriptomic sites corresponding to the same genomic
+            # site by taking the average stoichiometry across transcriptomic
+            # sites, accounting for transcript coverage
             if args.aggregate == "avg":
                 coverage = float(coverage)
                 if site_index in preds_dct_all:
@@ -117,7 +122,7 @@ def main():
                 else:
                     preds_dct_all[site_index] = [p_predicted*coverage, coverage]
 
-                if site_index in validated_set:
+                if site_index in validated_sites:
                     if site_index in preds_dct_val:
                         predsum, covsum = preds_dct_val[site_index]
                         predsum += p_predicted * coverage
@@ -126,20 +131,23 @@ def main():
                     else:
                         preds_dct_val[site_index] = [p_predicted*coverage, coverage]
 
+    # Get list of site probabilities
     if args.aggregate == "max":
         p_lst_all = [item for key, item in preds_dct_all.items()]
         p_lst_val = [item for key, item in preds_dct_val.items()]
-
     if args.aggregate == "avg":
         p_lst_all = [item[0] / item[1] for key, item in preds_dct_all.items()]
         p_lst_val = [item[0] / item[1] for key, item in preds_dct_val.items()]
 
+    # Sort list of site probabilities
     p_lst_val = sorted(p_lst_val)
     p_lst_all = sorted(p_lst_all)
 
     # Initialise thresholds
     thresholds = [0, 1/10**7, 1/10**6, 1/10**5, 1/10**4] + [x/1000 for x in range(1, 900)]
-    # Add range of thresholds 0.9, 0.901, 0.902 ... 0.989, 0.990, 0.9901 ... 0.9990 ... 0.99999999989 ... 1
+    
+    # Add range of thresholds
+    # 0.9, 0.901, 0.902 ... 0.989, 0.990, 0.9901 ... 0.9990 ... 0.99999999989 ... 1
     base_n_lst = [0.9]
     for n1 in range(1, 10):
         base_n  = str(base_n_lst[-1])
@@ -152,8 +160,7 @@ def main():
         base_n_lst.append(float(base_n + str(9)))
     thresholds.append(1)
 
-
-    # two pointers to get n predicted at thresholds for validated sites
+    # Get n predicted at thresholds for validated sites
     # TODO: Just compares number predicted, not whether each individual site is correctly predicted
     index_p, index_t = 0, 0
     out_vals = []
@@ -171,7 +178,7 @@ def main():
         out_vals.append([thresh, 0, 0])
         index_t += 1
 
-    # two pointers to get n predicted at thresholds for all sites
+    # Get n predicted at thresholds for all sites
     index_p, index_t = 0, 0
     out_vals_all = []
     while index_p < len(p_lst_all) and index_t < len(thresholds):
@@ -188,6 +195,7 @@ def main():
         out_vals_all.append([thresh, 0, 0])
         index_t += 1
 
+    # Write metrics to file
     with open(args.output, "w+") as of:
         of.write("site_threshold\tvalidated_called\tvalidated_rate\tall_called\tall_rate\tvalidated_precision\n")
         for i, row in enumerate(out_vals):
@@ -199,7 +207,7 @@ def main():
                 called_validated_percent = 0
             of.write("\t".join([str(x) for x in [thresh, validated_pred, validated_freq, all_pred, all_freq, called_validated_percent]]) + "\n")
 
-
+    # Note the time taken to run this analysis
     print("all done in ", time.time() - st, "seconds") # TODO: Convert to f-string
 
 
