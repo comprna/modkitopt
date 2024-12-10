@@ -7,77 +7,67 @@ from types import SimpleNamespace
 
 def main():
     parser = argparse.ArgumentParser()
-    OPTIONAL = parser._action_groups.pop()
-    REQUIRED = parser.add_argument_group('required arguments')
-
-    REQUIRED.add_argument("-i", "--input_bed",
+    parser.add_argument("-i", "--input_bed",
                         help="Input bed file, lifted to genome with columns:\n"
                             "chr pos0 pos1    .... coverage stoichiometry site_confidence",
                         required=True)
-
-    REQUIRED.add_argument("-v", "--validated",
+    parser.add_argument("-v", "--validated",
                         help="Input pickle file with a set of validated sites:\n"
                             "{chr_pos}",
                         required=True)
-
-    REQUIRED.add_argument("-o", "--output",
+    parser.add_argument("-o", "--output",
                         help="Input bed file with validated sites:\n"
                             "chr pos0 pos1 ",
                         required=True)
-
-    OPTIONAL.add_argument("-d", "--discard",
+    parser.add_argument("-d", "--discard",
                         help='Path to set with sites to discard from analysis',
                         type=int,
-                        default=None
-                        )
-
-    OPTIONAL.add_argument("-a", "--aggregate",
+                        default=None,
+                        required=False)
+    parser.add_argument("-a", "--aggregate",
                         help='Method for handling aggregated transcripts at same genomic location.\n'
                             '<max/avg> ; Default is max',
-                        default= "max"
-                        )
-
-    OPTIONAL.add_argument("-m", "--metric",
+                        default= "max",
+                        required=False)
+    parser.add_argument("-m", "--metric",
                         help='Metric for selecting sites.'
                             '<model2/rate> ; Default is model2',
-                        default= "model2"
-                        )
-
-    OPTIONAL.add_argument("--min_stoich",
+                        default= "model2",
+                        required=False)
+    parser.add_argument("--min_stoich",
                         help='Minimum stoichiometry for selecting sites. (Between 0 and 1)',
                         default= -1.0,
-                        type=float
-                        )
+                        type=float,
+                        required=False)
+    # args = parser.parse_args()
 
-    parser._action_groups.append(OPTIONAL)
-
-    # ARGS = parser.parse_args()
+    # Local testing
     top_dir = "/home/alex/OneDrive/Projects/m6A_proteins/1_prelim_analysis/1_preprocess_m6A/drs/1_optimise_modkit"
-    ARGS = SimpleNamespace()
-    ARGS.validated = "./example/validated_genomic_sites.pickle"
-    ARGS.input_bed = "./example/predicted_genomic_sites.bed"
-    ARGS.output = "./example/test_output.tsv"
-    ARGS.aggregate = "avg"
-    ARGS.metric = "rate"
-    ARGS.discard = None
-    ARGS.min_stoich = 0.8
+    args = SimpleNamespace()
+    args.validated = "./example/validated_genomic_sites.pickle"
+    args.input_bed = "./example/predicted_genomic_sites.bed"
+    args.output = "./example/test_output.tsv"
+    args.aggregate = "avg"
+    args.metric = "rate"
+    args.discard = None
+    args.min_stoich = 0.8
 
 
     st = time.time()
 
-    validated = ARGS.validated
-    predicted_path = ARGS.input_bed
-    out_path = ARGS.output
+    validated = args.validated
+    predicted_path = args.input_bed
+    out_path = args.output
 
 
-    if ARGS.metric not in ["model2","rate"]:
+    if args.metric not in ["model2","rate"]:
         raise ("--metric must be either model2 or rate")
 
-    if ARGS.aggregate not in ["max","avg"]:
+    if args.aggregate not in ["max","avg"]:
         raise ("--aggregate must be either max or avg")
 
-    if ARGS.discard:
-        with open(ARGS.discard,"rb") as p:
+    if args.discard:
+        with open(args.discard,"rb") as p:
             discard_set = pickle.load(p)
     else:
         discard_set=set()
@@ -101,11 +91,11 @@ def main():
             contig, start, end = line_lst[:3]
             site_index = f"{contig}_{end}"
 
-            if ARGS.metric == "rate":
+            if args.metric == "rate":
                 prob = stoich
 
             try:
-                if float(stoich) > ARGS.min_stoich:
+                if float(stoich) > args.min_stoich:
                     p_predicted = float(prob)
                 else:
                     p_predicted = 0
@@ -116,7 +106,7 @@ def main():
             if site_index in discard_set:
                 continue
 
-            if ARGS.aggregate == "max":
+            if args.aggregate == "max":
                 if site_index in preds_dct_all:
                     preds_dct_all[site_index] = max(preds_dct_all[site_index], p_predicted) # store maximum probability if multiple transcripts
                 else:
@@ -127,7 +117,7 @@ def main():
                     else:
                         preds_dct_val[site_index] = p_predicted
 
-            if ARGS.aggregate == "avg":
+            if args.aggregate == "avg":
                 coverage = float(coverage)
                 if site_index in preds_dct_all:
                     predsum, covsum = preds_dct_all[site_index]
@@ -146,11 +136,11 @@ def main():
                     else:
                         preds_dct_val[site_index] = [p_predicted*coverage, coverage]
 
-    if ARGS.aggregate == "max":
+    if args.aggregate == "max":
         p_lst_all = [item for key, item in preds_dct_all.items()]
         p_lst_val = [item for key, item in preds_dct_val.items()]
 
-    if ARGS.aggregate == "avg":
+    if args.aggregate == "avg":
         p_lst_all = [item[0] / item[1] for key, item in preds_dct_all.items()]
         p_lst_val = [item[0] / item[1] for key, item in preds_dct_val.items()]
 
