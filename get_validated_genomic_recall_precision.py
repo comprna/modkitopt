@@ -46,13 +46,13 @@ def main():
     # Local testing
     top_dir = "/home/alex/OneDrive/Projects/m6A_proteins/1_prelim_analysis/1_preprocess_m6A/drs/1_optimise_modkit"
     args = SimpleNamespace()
-    args.validated = "./example/validated_genomic_sites.pickle"
-    args.input_bed = "./example/predicted_genomic_sites.bed"
-    args.output = "./example/test_output.tsv"
+    args.validated = "./example/VAL_SET_HeLa_glori_control_over10_set.pickle"
+    args.input_bed = "./example/EXAMPLE_INPUT_HeLa_mRNA_merged.m1.tsv.bugfix2.genomic.site.bed.DRACH"
+    args.output = "./example/TEST_OUTPUT_HeLa_mRNA_merged.m1.tsv.bugfix2.genomic.site.bed.DRACH.recall_vs_precision.tsv"
     args.aggregate = "avg"
-    args.metric = "rate"
+    args.metric = "model2"
     args.discard = None
-    args.min_stoich = 0.8
+    args.min_stoich = -1.0
 
     st = time.time()
 
