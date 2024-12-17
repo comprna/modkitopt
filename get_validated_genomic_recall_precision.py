@@ -41,18 +41,18 @@ def main():
                         default= -1.0,
                         type=float,
                         required=False)
-    # args = parser.parse_args()
+    args = parser.parse_args()
 
-    # Local testing
-    top_dir = "/home/alex/OneDrive/Projects/m6A_proteins/1_prelim_analysis/1_preprocess_m6A/drs/1_optimise_modkit"
-    args = SimpleNamespace()
-    args.validated = "./example/VAL_SET_HeLa_glori_control_over10_set.pickle"
-    args.input_bed = "./example/EXAMPLE_INPUT_HeLa_mRNA_merged.m1.tsv.bugfix2.genomic.site.bed.DRACH"
-    args.output = "./example/TEST_OUTPUT_HeLa_mRNA_merged.m1.tsv.bugfix2.genomic.site.bed.DRACH.recall_vs_precision.tsv"
-    args.aggregate = "avg"
-    args.metric = "model2"
-    args.discard = None
-    args.min_stoich = -1.0
+    # # Local testing
+    # top_dir = "/home/alex/OneDrive/Projects/m6A_proteins/1_prelim_analysis/1_preprocess_m6A/drs/1_optimise_modkit"
+    # args = SimpleNamespace()
+    # args.validated = "/home/alex/OneDrive/Projects/m6A_proteins/1_prelim_analysis/1_preprocess_m6A/drs/1_optimise_modkit/6_out_hek293_glori_validated.pickle"
+    # args.input_bed = "/home/alex/OneDrive/Projects/m6A_proteins/1_prelim_analysis/1_preprocess_m6A/drs/1_optimise_modkit/5_out_lifted/5_out_HEK293_SGNex_inosine_m6A_pileup_filter0.995_mod0.995.bed_cheui_like.bed_lifted"
+    # args.output = "/home/alex/OneDrive/Projects/m6A_proteins/1_prelim_analysis/1_preprocess_m6A/drs/1_optimise_modkit/test_out.tsv"
+    # args.aggregate = "avg"
+    # args.metric = "rate"
+    # args.discard = None
+    # args.min_stoich = -1.0
 
     st = time.time()
 
@@ -75,8 +75,8 @@ def main():
         for line in f:
             fields = line.strip().split("\t")
             coverage, stoich, prob = fields[-3:]
-            contig, start, end = fields[:3]
-            site_index = f"{contig}_{end}"
+            chromosome, start, end = fields[:3]
+            site_index = f"chr{chromosome}_{start}"
 
             # If sites are selected based on modification rate, then... TODO:stefan what is logic here?
             if args.metric == "rate":
@@ -161,7 +161,6 @@ def main():
     thresholds.append(1)
 
     # Get n predicted at thresholds for validated sites
-    # TODO: Just compares number predicted, not whether each individual site is correctly predicted
     index_p, index_t = 0, 0
     out_vals = []
     while index_p < len(p_lst_val) and index_t < len(thresholds):
