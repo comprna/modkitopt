@@ -76,7 +76,7 @@ def main():
             fields = line.strip().split("\t")
             coverage, stoich, prob = fields[-3:]
             chromosome, start, end = fields[:3]
-            site_index = f"chr{chromosome}_{start}"
+            site_index = f"chr{chromosome}_{end}"
 
             # If sites are selected based on modification rate, then... TODO:stefan what is logic here?
             if args.metric == "rate":
