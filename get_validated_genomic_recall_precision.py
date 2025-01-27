@@ -46,9 +46,9 @@ def main():
     # # Local testing
     # top_dir = "/home/alex/OneDrive/Projects/m6A_proteins/1_prelim_analysis/1_preprocess_m6A/drs/1_optimise_modkit"
     # args = SimpleNamespace()
-    # args.validated = "/home/alex/OneDrive/Projects/m6A_proteins/1_prelim_analysis/1_preprocess_m6A/drs/1_optimise_modkit/6_out_hek293_glori_validated.pickle"
-    # args.input_bed = "/home/alex/OneDrive/Projects/m6A_proteins/1_prelim_analysis/1_preprocess_m6A/drs/1_optimise_modkit/5_out_lifted/5_out_HEK293_SGNex_inosine_m6A_pileup_filter0.995_mod0.995.bed_cheui_like.bed_lifted"
-    # args.output = "/home/alex/OneDrive/Projects/m6A_proteins/1_prelim_analysis/1_preprocess_m6A/drs/1_optimise_modkit/test_out.tsv"
+    # args.validated = "/home/alex/OneDrive/Projects/m6A_proteins/1_prelim_analysis/1_preprocess_m6A/drs/1_optimise_modkit/9_out_hek293_glori_validated.pickle"
+    # args.input_bed = "/home/alex/OneDrive/Projects/m6A_proteins/1_prelim_analysis/1_preprocess_m6A/drs/1_optimise_modkit/8_out_genes_filtered/8_out_5_out_HEK293_SGNex_inosine_m6A_pileup_filter0.5_mod0.5.bed_cheui_like.bed_lifted_filtered"
+    # args.output = "/home/alex/OneDrive/Projects/m6A_proteins/1_prelim_analysis/1_preprocess_m6A/drs/1_optimise_modkit/10_out_test_out.tsv"
     # args.aggregate = "avg"
     # args.metric = "rate"
     # args.discard = None
@@ -68,8 +68,8 @@ def main():
         validated_sites = pickle.load(p)
 
     # Parse site level info to and store site thesholds
-    preds_dct_val = {}
-    preds_dct_all = {}
+    preds_dct_val = {} # predicted sites that are also in the validated sites
+    preds_dct_all = {} # all predicted sites
     with open(args.input_bed) as f:
         f.readline() # Pass over header
         for line in f:
@@ -78,11 +78,11 @@ def main():
             chromosome, start, end = fields[:3]
             site_index = f"chr{chromosome}_{end}"
 
-            # If sites are selected based on modification rate, then... TODO:stefan what is logic here?
+            # If sites are selected based on modification rate
             if args.metric == "rate":
                 prob = stoich
 
-            # Some m6A stoichiometry predictors output None if... TODO:stefan
+            # Some m6A stoichiometry predictors output None
             try:
                 if float(stoich) > args.min_stoich:
                     p_predicted = float(prob)
@@ -160,7 +160,7 @@ def main():
         base_n_lst.append(float(base_n + str(9)))
     thresholds.append(1)
 
-    # Get n predicted at thresholds for validated sites
+    # Get n validated sites predicted per threshold
     index_p, index_t = 0, 0
     out_vals = []
     while index_p < len(p_lst_val) and index_t < len(thresholds):
@@ -177,7 +177,7 @@ def main():
         out_vals.append([thresh, 0, 0])
         index_t += 1
 
-    # Get n predicted at thresholds for all sites
+    # Get n sites (total, not just validated sites) predicted per threshold
     index_p, index_t = 0, 0
     out_vals_all = []
     while index_p < len(p_lst_all) and index_t < len(thresholds):
@@ -196,6 +196,12 @@ def main():
 
     # Write metrics to file
     with open(args.output, "w+") as of:
+        # site_threshold      --> stoichiometry threshold to consider a site as modified
+        # validated_called    --> no. of validated sites that were also predicted
+        # validated_rate      --> proportion of validated sites that were predicted (recall)
+        # all_called          --> no. of all m6A sites predicted
+        # all_rate            --> proportion of all sites that were predicted
+        # validated_precision --> proportion of predicted sites that were validated
         of.write("site_threshold\tvalidated_called\tvalidated_rate\tall_called\tall_rate\tvalidated_precision\n")
         for i, row in enumerate(out_vals):
             thresh, validated_freq, validated_pred = row
