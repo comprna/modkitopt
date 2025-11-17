@@ -18,8 +18,8 @@
 
 nextflow.enable.dsl = 2
 
-// include { SAMTOOLS_SORT   } from './modules/samtools_sort.nf'
-// include { SAMTOOLS_FILTER } from './modules/samtools_filter.nf'
+include { SAMTOOLS_SORT   } from './modules/samtools_sort.nf'
+include { SAMTOOLS_FILTER } from './modules/samtools_filter.nf'
 // include { MODKIT_PILEUP   } from './modules/modkit_pileup.nf'
 // include { EVAL_PARAMS     } from './modules/eval_params.nf'
 
@@ -31,8 +31,15 @@ workflow {
      * =========================================================================
      */
     
-    if (!params.modbam)          exit 1, "ERROR: --modbam is required"
-    if (!params.mod_type)        exit 1, "ERROR: --mod_type is required"
+    if (!params.modbam) {
+        exit 1, "ERROR: Please provide --modbam (.bam file output by modification caller)"
+    }
+    if (!params.mod_type) {
+        exit 1, "ERROR: Please provide --mod_type (options: m6A, m5C, pseU, other)"
+    }
+    if (!params.modkit) {
+        exit 1, "ERROR: Please provide the path to modkit via --modkit"
+    }
 
     // Validate modification type
     assert params.mod_type in ['m6A','m5C','pseU','other'], \
@@ -44,8 +51,8 @@ workflow {
 
         // If no ground_truth provided for m6A, then use supplied default
         if (params.mod_type == "m6A") {
-            log.warn "No --ground_truth supplied for --mod_type m6A; using default"
             ground_truth = "./resources/m6A_validated.pickle"
+            log.warn "No --ground_truth supplied for --mod_type m6A; using default '${ground_truth}'"
 
         // ground_truth must be provided for mods other than m6A
         } else {
@@ -65,5 +72,9 @@ workflow {
      *     Sort and filter BAM
      * =========================================================================
      */
-
+    
+    // TODO: What happens if you don't do these steps?
+    sorted_bam   = SAMTOOLS_SORT(modbam)
+    filtered_bam = SAMTOOLS_FILTER(sorted_bam)
+    // TODO: Do we need to index?
 }
