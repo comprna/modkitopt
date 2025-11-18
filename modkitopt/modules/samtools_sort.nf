@@ -1,17 +1,19 @@
 process SAMTOOLS_SORT {
-    tag "$modbam"
+    tag "$bam"
 
     conda './env.yaml'
 
+    publishDir 'results', mode: 'copy'
+
     input:
-    path modbam
+    path bam
 
     output:
-    path "sorted.bam" , emit: sorted_bam
+    path "${bam}.sorted" , emit: sorted_bam
 
     script:
     """
-    samtools sort ${modbam} > "sorted.bam"
-    echo "samtools sort: input ${modbam}, emitting sorted.bam"
+    samtools sort ${bam} > ${bam}.sorted
+    echo "samtools sort: input ${bam}, emitting ${bam}.sorted"
     """
 }

@@ -1,4 +1,4 @@
-process SAMTOOLS_FILTER {
+process SAMTOOLS_INDEX {
     tag "$bam"
 
     conda './env.yaml'
@@ -9,10 +9,11 @@ process SAMTOOLS_FILTER {
     path bam
 
     output:
-    path "${bam}.filtered", emit: filtered_bam
+    path "${bam}.bai"
+    path "${bam}" , emit: indexed_bam
 
     script:
     """
-    samtools view -b -F 2324 ${bam} > ${bam}.filtered
+    samtools index ${bam}
     """
 }

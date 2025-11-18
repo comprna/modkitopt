@@ -18,9 +18,10 @@
 
 nextflow.enable.dsl = 2
 
-include { SAMTOOLS_SORT   } from './modules/samtools_sort.nf'
-include { SAMTOOLS_FILTER } from './modules/samtools_filter.nf'
-// include { MODKIT_PILEUP   } from './modules/modkit_pileup.nf'
+// include { SAMTOOLS_FILTER } from './modules/samtools_filter.nf'
+// include { SAMTOOLS_SORT   } from './modules/samtools_sort.nf'
+// include { SAMTOOLS_INDEX } from './modules/samtools_index.nf'
+include { MODKIT_PILEUP   } from './modules/modkit_pileup.nf'
 // include { EVAL_PARAMS     } from './modules/eval_params.nf'
 
 workflow {
@@ -39,6 +40,9 @@ workflow {
     }
     if (!params.modkit) {
         exit 1, "ERROR: Please provide the path to modkit via --modkit"
+    }
+    if (!params.fasta) {
+        exit 1, "ERROR: Please provide the path to the reference transriptome via --fasta"
     }
 
     // Validate modification type
@@ -62,19 +66,41 @@ workflow {
     } else {
         ground_truth = params.ground_truth
     }
-
-    // Stage files
-    modbam       = file(params.modbam)
-    ground_truth = file(ground_truth)
     
     /*
      * =========================================================================
-     *     Sort and filter BAM
+     *     Filter, sort and index BAM
      * =========================================================================
      */
-    
-    // TODO: What happens if you don't do these steps?
-    sorted_bam   = SAMTOOLS_SORT(modbam)
-    filtered_bam = SAMTOOLS_FILTER(sorted_bam)
-    // TODO: Do we need to index?
+
+    // ch_modbam = channel.fromPath(params.modbam)
+    // ch_filtered_bam = SAMTOOLS_FILTER(ch_modbam)
+    // ch_sorted_bam = SAMTOOLS_SORT(ch_filtered_bam)
+    // ch_indexed_bam = SAMTOOLS_INDEX(ch_sorted_bam)
+
+    /*
+     * =========================================================================
+     *     Run modkit across parameter combinations
+     * =========================================================================
+     */
+
+    // Create a channel of parameter combinations
+    ch_modkit_params = channel.from(params.filter_thresholds)
+                              .combine(channel.from(params.mod_thresholds))
+                              .map { ft, mt -> tuple(ft, mt) }
+ 
+    // Create a channel for the reference fasta file
+    ch_fasta = channel.fromPath(params.fasta, checkIfExists: true)
+
+    // Combine channels
+    ch_fasta.combine(ch_modkit_params)
+            .set { ch_modkit_input }
+
+    // Run modkit for each parameter combination
+    MODKIT_PILEUP(ch_modkit_input)
+
 }
+
+
+// /home/alex/Documents/tools/dist_modkit_v0.5.1_8fa79e3/modkit
+// /mnt/sda/projects/m6A_proteins/1_prelim_analysis/moved_from_OneDrive/1_prelim_analysis/0_refs/gencode/gencode.v45.transcripts.fa

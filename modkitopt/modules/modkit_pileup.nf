@@ -1,22 +1,31 @@
 process MODKIT_PILEUP {
     tag "ft=${filter_threshold}, mt=${mod_threshold}"
 
+    publishDir 'results', mode: 'copy'
+
     input:
-    path bamfile from cleaned_bam
-    val modtype from validated_modtype
-    tuple val(filter_threshold), val(mod_threshold) from modkit_param_grid
+    // path bam
+    tuple path(fasta), val(filter_threshold), val(mod_threshold)
 
     output:
-    tuple val(filter_threshold), val(mod_threshold), path("modkit_${filter_threshold}_${mod_threshold}.tsv") \
-        into modkit_results
+    // path "modkit_pileup_${filter_threshold}_${mod_threshold}.bed" , emit: modkit_bed
+    // path "modkit_pileup_${filter_threshold}_${mod_threshold}.log" , emit: modkit_log
+    path "test_${filter_threshold}_${mod_threshold}.txt"
+
 
     script:
     """
-    modkit pileup \\
-        --filter-threshold ${filter_threshold} \\
-        --mod-threshold ${mod_threshold} \\
-        --only-mod ${modtype} \\
-        ${bamfile} \\
-        modkit_${filter_threshold}_${mod_threshold}.tsv
+    echo "test ${fasta} ${filter_threshold} ${mod_threshold}" > "test_${filter_threshold}_${mod_threshold}.txt"
     """
 }
+
+    // ${params.modkit} pileup ${bam} \\
+    //     "modkit_pileup_${filter_threshold}_${mod_threshold}.bed" \\
+    //     --filter-threshold A:${filter_threshold} \\
+    //     --mod-threshold a:${mod_threshold} \\
+    //     --log-filepath "modkit_pileup_${filter_threshold}_${mod_threshold}.log" \\
+    //     --with-header \\
+    //     -t 24 \\
+    //     --motif A 0 \\
+    //     --ref ${fasta} \\
+    //     --ignore 17596 # Remove inosine calls
