@@ -3,13 +3,13 @@ process SAMTOOLS_INDEX {
 
     conda './env.yaml'
 
-    publishDir 'results', mode: 'copy'
+    publishDir params.outdir, mode: 'copy'
 
     input:
     path bam
 
     output:
-    path "${bam}.bai"
+    path "${bam}.bai" , emit: index
     path "${bam}" , emit: indexed_bam
 
     script:

@@ -18,9 +18,9 @@
 
 nextflow.enable.dsl = 2
 
-// include { SAMTOOLS_FILTER } from './modules/samtools_filter.nf'
-// include { SAMTOOLS_SORT   } from './modules/samtools_sort.nf'
-// include { SAMTOOLS_INDEX } from './modules/samtools_index.nf'
+include { SAMTOOLS_FILTER } from './modules/samtools_filter.nf'
+include { SAMTOOLS_SORT   } from './modules/samtools_sort.nf'
+include { SAMTOOLS_INDEX } from './modules/samtools_index.nf'
 include { MODKIT_PILEUP   } from './modules/modkit_pileup.nf'
 // include { EVAL_PARAMS     } from './modules/eval_params.nf'
 
@@ -73,10 +73,10 @@ workflow {
      * =========================================================================
      */
 
-    // ch_modbam = channel.fromPath(params.modbam)
-    // ch_filtered_bam = SAMTOOLS_FILTER(ch_modbam)
-    // ch_sorted_bam = SAMTOOLS_SORT(ch_filtered_bam)
-    // ch_indexed_bam = SAMTOOLS_INDEX(ch_sorted_bam)
+    ch_modbam = channel.fromPath(params.modbam)
+    ch_filtered_bam = SAMTOOLS_FILTER(ch_modbam)
+    ch_sorted_bam = SAMTOOLS_SORT(ch_filtered_bam)
+    ch_indexed_bam = SAMTOOLS_INDEX(ch_sorted_bam)
 
     /*
      * =========================================================================
@@ -92,9 +92,14 @@ workflow {
     // Create a channel for the reference fasta file
     ch_fasta = channel.fromPath(params.fasta, checkIfExists: true)
 
-    // Combine channels
-    ch_fasta.combine(ch_modkit_params)
-            .set { ch_modkit_input }
+    // Combine the BAM and BAM index into a single channel
+    ch_bam_index = ch_indexed_bam.indexed_bam.combine(ch_indexed_bam.index)
+
+    // Combine also with the fasta channel
+    ch_bam_fasta = ch_bam_index.combine(ch_fasta)
+
+    // Combine also with the modkit parameters channel
+    ch_modkit_input = ch_bam_fasta.combine(ch_modkit_params)
 
     // Run modkit for each parameter combination
     MODKIT_PILEUP(ch_modkit_input)
