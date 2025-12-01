@@ -4,8 +4,9 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     modkitopt
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Pipeline to optimise modkit pileup parameters --filter-threshold and --mod-threshold
-    to maximise sensitivity and precision of nanopore RNA modification calls.
+    Pipeline to optimise the modkit pileup parameters --filter-threshold and 
+    --mod-threshold to maximise the sensitivity and precision of nanopore RNA
+    modification calls.
     
     Steps:
      1. Sort/filter modBAM with samtools
@@ -20,15 +21,16 @@ nextflow.enable.dsl = 2
 
 include { SAMTOOLS_FILTER } from './modules/samtools_filter.nf'
 include { SAMTOOLS_SORT   } from './modules/samtools_sort.nf'
-include { SAMTOOLS_INDEX } from './modules/samtools_index.nf'
+include { SAMTOOLS_INDEX  } from './modules/samtools_index.nf'
 include { MODKIT_PILEUP   } from './modules/modkit_pileup.nf'
+include { T2G             } from './modules/t2g.nf'
 // include { EVAL_PARAMS     } from './modules/eval_params.nf'
 
 workflow {
 
     /*
      * =========================================================================
-     *     Input validation
+     *  Input validation
      * =========================================================================
      */
     
@@ -44,6 +46,10 @@ workflow {
     if (!params.fasta) {
         exit 1, "ERROR: Please provide the path to the reference transriptome via --fasta"
     }
+    if (!params.gff) {
+        exit 1, "ERROR: Please provide the path to the reference annotation via --gff"
+    }
+
 
     // Validate modification type
     assert params.mod_type in ['m6A','m5C','pseU','other'], \
@@ -69,7 +75,7 @@ workflow {
     
     /*
      * =========================================================================
-     *     Filter, sort and index BAM
+     *  Filter, sort and index BAM
      * =========================================================================
      */
 
@@ -80,7 +86,7 @@ workflow {
 
     /*
      * =========================================================================
-     *     Run modkit across parameter combinations
+     *  Run modkit across parameter combinations
      * =========================================================================
      */
 
@@ -102,7 +108,33 @@ workflow {
     ch_modkit_input = ch_bam_fasta.combine(ch_modkit_params)
 
     // Run modkit for each parameter combination
-    MODKIT_PILEUP(ch_modkit_input)
+    ch_modkit_output = MODKIT_PILEUP(ch_modkit_input)
+
+    /*
+     * =========================================================================
+     *  Convert transcriptomic to genomic coordinates for comparison with
+     *  validated sites
+     * =========================================================================
+     */
+    
+    // Create a channel for the reference annotation
+    ch_gff = channel.fromPath(params.gff, checkIfExists: true)
+
+    // Combine the annotation with the bed file channel
+    ch_t2g_input = ch_modkit_output.modkit_bed.combine(ch_gff)
+
+    // Convert transcriptomic to genomic coordinates
+    ch_modkit_genomic = T2G(ch_t2g_input)
+    ch_modkit_genomic.view()
+
+    /*
+     * =========================================================================
+     *  Compute recall and precision of called sites, compared against ground
+     *  truth sites, across stoichiometry thresholds
+     * =========================================================================
+     */
+    
+
 
 }
 
