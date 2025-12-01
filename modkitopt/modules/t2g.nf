@@ -11,6 +11,6 @@ process T2G {
 
     script:
     """
-    Rscript ${workflow.projectDir}/bin/t2g.R ${bed} ${gff}
+    t2g.R ${bed} ${gff}
     """
 }

@@ -1,3 +1,5 @@
+#!/usr/bin/Rscript
+
 library(tidyverse)
 library(glue)
 library(GenomicFeatures)
@@ -6,9 +8,6 @@ library(GenomicFeatures)
 args = commandArgs(trailingOnly=TRUE)
 file_bed <- args[1]
 gff      <- args[2]
-
-# file_bed <- "./modkitopt/results/modkit_pileup_0.5_0.5.bed"
-# gff <- "./modkitopt/resources/gencode.v45.annotation.gff3"
 
 # Load modkit output
 file_bed %>%

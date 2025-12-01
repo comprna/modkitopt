@@ -24,7 +24,7 @@ include { SAMTOOLS_SORT   } from './modules/samtools_sort.nf'
 include { SAMTOOLS_INDEX  } from './modules/samtools_index.nf'
 include { MODKIT_PILEUP   } from './modules/modkit_pileup.nf'
 include { T2G             } from './modules/t2g.nf'
-// include { EVAL_PARAMS     } from './modules/eval_params.nf'
+include { EVAL_PARAMS     } from './modules/eval_params.nf'
 
 workflow {
 
@@ -79,7 +79,7 @@ workflow {
      * =========================================================================
      */
 
-    ch_modbam = channel.fromPath(params.modbam)
+    ch_modbam = channel.fromPath(params.modbam, checkIfExists: true)
     ch_filtered_bam = SAMTOOLS_FILTER(ch_modbam)
     ch_sorted_bam = SAMTOOLS_SORT(ch_filtered_bam)
     ch_indexed_bam = SAMTOOLS_INDEX(ch_sorted_bam)
@@ -116,7 +116,7 @@ workflow {
      *  validated sites
      * =========================================================================
      */
-    
+
     // Create a channel for the reference annotation
     ch_gff = channel.fromPath(params.gff, checkIfExists: true)
 
@@ -134,7 +134,14 @@ workflow {
      * =========================================================================
      */
     
+    // // Create a channel for the ground truth sites
+    // ch_truth = channel.fromPath(ground_truth, checkIfExists: true)
 
+    // // Combine the channels for ground truth sites and modkit sites
+    // ch_eval_params_input = ch_modkit_genomic.combine(ch_truth)
+
+    // // Evaluate precision and recall
+    // EVAL_PARAMS(ch_eval_params_input)
 
 }
 
