@@ -19,12 +19,12 @@
 
 nextflow.enable.dsl = 2
 
-include { SAMTOOLS_FILTER } from './modules/samtools_filter.nf'
-include { SAMTOOLS_SORT   } from './modules/samtools_sort.nf'
-include { SAMTOOLS_INDEX  } from './modules/samtools_index.nf'
-include { MODKIT_PILEUP   } from './modules/modkit_pileup.nf'
-include { T2G             } from './modules/t2g.nf'
-include { EVAL_PARAMS     } from './modules/eval_params.nf'
+include { SAMTOOLS_FILTER  } from './modules/samtools_filter.nf'
+include { SAMTOOLS_SORT    } from './modules/samtools_sort.nf'
+include { SAMTOOLS_INDEX   } from './modules/samtools_index.nf'
+include { MODKIT_PILEUP    } from './modules/modkit_pileup.nf'
+include { T2G              } from './modules/t2g.nf'
+include { PRECISION_RECALL } from './modules/precision_recall.nf'
 
 workflow {
 
@@ -110,6 +110,11 @@ workflow {
     // Run modkit for each parameter combination
     ch_modkit_output = MODKIT_PILEUP(ch_modkit_input)
 
+    // Merge the modkit output bed file with the modkit parameters
+    ch_bed_params = ch_modkit_output.modkit_bed
+                                    .merge(ch_modkit_output.filter_threshold)
+                                    .merge(ch_modkit_output.mod_threshold)
+
     /*
      * =========================================================================
      *  Convert transcriptomic to genomic coordinates for comparison with
@@ -121,12 +126,16 @@ workflow {
     ch_gff = channel.fromPath(params.gff, checkIfExists: true)
 
     // Combine the annotation with the bed file channel
-    ch_t2g_input = ch_modkit_output.modkit_bed.combine(ch_gff)
+    ch_t2g_input = ch_bed_params.combine(ch_gff)
 
     // Convert transcriptomic to genomic coordinates
     ch_modkit_genomic = T2G(ch_t2g_input)
-    ch_modkit_genomic.view()
 
+    // Merge the genomic bed file with the modkit parameters
+    ch_genomic_params = ch_modkit_genomic.bed_genomic
+                                         .merge(ch_modkit_genomic.filter_threshold)
+                                         .merge(ch_modkit_genomic.mod_threshold)
+    
     /*
      * =========================================================================
      *  Compute recall and precision of called sites, compared against ground
@@ -134,14 +143,15 @@ workflow {
      * =========================================================================
      */
     
-    // // Create a channel for the ground truth sites
-    // ch_truth = channel.fromPath(ground_truth, checkIfExists: true)
+    // Create a channel for the ground truth sites
+    ch_truth = channel.fromPath(ground_truth, checkIfExists: true)
 
-    // // Combine the channels for ground truth sites and modkit sites
-    // ch_eval_params_input = ch_modkit_genomic.combine(ch_truth)
+    // Combine the channels for ground truth sites and modkit sites
+    ch_eval_params_input = ch_genomic_params.combine(ch_truth)
+    ch_eval_params_input.view()
 
-    // // Evaluate precision and recall
-    // EVAL_PARAMS(ch_eval_params_input)
+    // Evaluate precision and recall
+    ch_prec_recall = PRECISION_RECALL(ch_eval_params_input)
 
 }
 

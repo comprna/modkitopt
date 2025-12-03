@@ -4,11 +4,17 @@ process MODKIT_PILEUP {
     publishDir params.outdir, mode: 'copy'
 
     input:
-    tuple path(bam), path(index), path(fasta), val(filter_threshold), val(mod_threshold)
+    tuple path(bam),
+          path(index),
+          path(fasta),
+          val(filter_threshold),
+          val(mod_threshold)
 
     output:
     path "modkit_pileup_${filter_threshold}_${mod_threshold}.bed" , emit: modkit_bed
     path "modkit_pileup_${filter_threshold}_${mod_threshold}.log" , emit: modkit_log
+    val(filter_threshold) , emit: filter_threshold
+    val(mod_threshold) , emit: mod_threshold
 
     script:
     """

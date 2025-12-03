@@ -4,10 +4,12 @@ process T2G {
     publishDir params.outdir, mode: 'copy'
 
     input:
-    tuple path(bed), path(gff)
+    tuple path(bed), val(filter_threshold), val(mod_threshold), path(gff)
 
     output:
     path "${bed}.genomic" , emit: bed_genomic
+    val(filter_threshold) , emit: filter_threshold
+    val(mod_threshold) , emit: mod_threshold
 
     script:
     """
