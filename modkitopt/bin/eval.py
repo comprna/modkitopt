@@ -37,9 +37,13 @@ def main():
         f.readline() # Pass over header
         for line in f:
             fields = line.strip().split("\t")
-            coverage, stoich = fields[-3:-1] # TODO: [-2:]
+            coverage, stoich = fields[-2:]
             chromosome, start, end = fields[:3]
             pred_site = f"chr{chromosome}_{end}"
+
+            # Only consider sites with coverage at least 20 reads
+            if coverage < 20:
+                continue
 
             # Some m6A stoichiometry predictors output None
             try:

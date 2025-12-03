@@ -148,7 +148,6 @@ workflow {
 
     // Combine the channels for ground truth sites and modkit sites
     ch_eval_params_input = ch_genomic_params.combine(ch_truth)
-    ch_eval_params_input.view()
 
     // Evaluate precision and recall
     ch_prec_recall = PRECISION_RECALL(ch_eval_params_input)

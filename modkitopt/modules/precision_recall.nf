@@ -10,22 +10,15 @@ process PRECISION_RECALL {
           path(ground_truth)
 
     output:
-    path "out_${filter_threshold}_${mod_threshold}.txt"
+    path "precision_recall_${filter_threshold}_${mod_threshold}.tsv" , emit: precision_recall
+    val(filter_threshold) , emit: filter_threshold
+    val(mod_threshold) , emit: mod_threshold
 
     script:
     """
-    echo ${bed_genomic} ${ground_truth} ${filter_threshold} ${mod_threshold} \
-        > out_${filter_threshold}_${mod_threshold}.txt
+    eval.py \
+        --input_bed ${bed_genomic} \
+        --truth ${ground_truth} \
+        --output precision_recall_${filter_threshold}_${mod_threshold}.tsv
     """
 }
-
-
-
-    // python3 evaluate_params.py \\
-    //     --truth ${truth} \\
-    //     --results modkit_results.pkl \\
-    //     --out-best best_parameters.txt \\
-    //     --out-summary evaluation_summary.tsv
-
-    // python3 eval_recall_precision.py \\
-    //     --input_bed ${bed_genomic}
