@@ -76,21 +76,7 @@ def main():
     p_all = sorted(p_all)
 
     # Initialise stoichiometry thresholds
-    thresholds = [0, 1/10**7, 1/10**6, 1/10**5, 1/10**4] + [x/1000 for x in range(1, 900)]
-    
-    # Add range of thresholds
-    # 0.9, 0.901, 0.902 ... 0.989, 0.990, 0.9901 ... 0.9990 ... 0.99999999989 ... 1
-    base_n_lst = [0.9]
-    for n1 in range(1, 10):
-        base_n  = str(base_n_lst[-1])
-        for n2 in range(0, 9):
-            base_n_to_add = float(base_n + str(n2))
-            base_n_lst.append(base_n_to_add)
-            for n3 in range(0, 10):
-                threshold_to_add = float(base_n + str(n2) + str(n3))
-                thresholds.append(threshold_to_add)
-        base_n_lst.append(float(base_n + str(9)))
-    thresholds.append(1)
+    thresholds = [t / 1000 for t in range(0, 1000)]
 
     # Get n validated sites predicted per threshold
     index_p, index_t = 0, 0
@@ -127,11 +113,11 @@ def main():
         index_t += 1
 
     # Write metrics to file
-    with open(args.output, "w+") as of:
+    with open(args.output, "w+") as out:
         # threshold   --> stoichiometry threshold to consider a site as modified
         # recall      --> proportion of validated sites that were predicted
         # precision   --> proportion of predicted sites that were validated
-        of.write("threshold\trecall\tprecision\n")
+        out.write("threshold\trecall\tprecision\n")
         for i, row in enumerate(out_vals):
             thresh, recall, tp = row
             thresh, _, all_pred = out_vals_all[i]
@@ -139,7 +125,7 @@ def main():
                 precision = tp / all_pred
             else:
                 precision = 0
-            of.write("\t".join([str(x) for x in [thresh, recall, precision]]) + "\n")
+            out.write(f"{thresh}\t{recall:.3f}\t{precision:.3f}\n")
 
 
 if __name__ == "__main__":
