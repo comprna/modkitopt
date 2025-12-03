@@ -2,19 +2,24 @@ process EVAL_PARAMS {
     tag "param_eval"
 
     input:
-    path truth from params.truth
-    tuple val(filter), val(modthresh), path(out) from modkit_results.collect()
+    tuple path(bed_genomic), path(params.ground_truth)
 
     output:
-    path "best_parameters.txt"
-    path "evaluation_summary.tsv"
 
     script:
     """
-    python3 evaluate_params.py \\
-        --truth ${truth} \\
-        --results modkit_results.pkl \\
-        --out-best best_parameters.txt \\
-        --out-summary evaluation_summary.tsv
+    echo ${bed_genomic}
+    echo ${params.ground_truth}
     """
 }
+
+
+
+    // python3 evaluate_params.py \\
+    //     --truth ${truth} \\
+    //     --results modkit_results.pkl \\
+    //     --out-best best_parameters.txt \\
+    //     --out-summary evaluation_summary.tsv
+
+    // python3 eval_recall_precision.py \\
+    //     --input_bed ${bed_genomic}
