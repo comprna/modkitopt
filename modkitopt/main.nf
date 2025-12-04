@@ -9,9 +9,11 @@
     modification calls.
     
     Steps:
-     1. Sort/filter modBAM with samtools
-     2. Run modkit across parameter combinations
-     3. Evaluate best parameters using validated (ground truth) sites
+     1. Filter & sort modBAM with samtools
+     2. Run modkit pileup across modkit parameter combinations
+     3. For each modkit parameter combination, compute recall and precision of
+        predicted sites using ground truth sites
+     4. Determine modkit parameters that give highest recall and precision
     
     Github : https://github.com/comprna/modkitopt
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -166,7 +168,3 @@ workflow {
     ch_best_params.out_string.view()
 
 }
-
-
-// /home/alex/Documents/tools/dist_modkit_v0.5.1_8fa79e3/modkit
-// /mnt/sda/projects/m6A_proteins/1_prelim_analysis/moved_from_OneDrive/1_prelim_analysis/0_refs/gencode/gencode.v45.transcripts.fa

@@ -3,6 +3,8 @@ process MODKIT_PILEUP {
 
     publishDir params.outdir, mode: 'copy'
 
+    cpus params.pileup_cpus ?: 1
+
     input:
     tuple path(bam),
           path(index),
