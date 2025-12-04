@@ -22,13 +22,12 @@ process MODKIT_PILEUP {
     """
     ${params.modkit} pileup ${bam} \\
         "modkit_pileup_${filter_threshold}_${mod_threshold}.bed" \\
-        --threads 8 \\
+        --modified-bases ${params.mod_type} \\
+        --threads ${task.cpus} \\
         --with-header \\
         --filter-threshold A:${filter_threshold} \\
         --mod-threshold a:${mod_threshold} \\
         --log-filepath "modkit_pileup_${filter_threshold}_${mod_threshold}.log" \\
-        --motif A 0 \\
         --ref ${fasta} \\
-        --ignore 17596 # Remove inosine calls \\
     """
 }
