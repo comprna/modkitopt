@@ -9,8 +9,9 @@ library(ggrepel)
 ################################################################################
 
 args     <- commandArgs(trailingOnly = TRUE)
-files    <- head(args, -1) # Results files, one per modkit parameter set
-out_plot <- tail(args, 1) # Last argument is the output plot filepath
+files    <- head(args, -2) # Results files, one per modkit parameter set
+out_tsv  <- tail(args, 2)[1] # 2nd last arg is the filepath to write F1 scores
+out_plot <- tail(args, 1) # Last arg is the plot filepath
 
 ################################################################################
 # Load precision recall results for each modkit parameter set
@@ -49,7 +50,8 @@ ds_to_plot <- map_dfr(ds_list, bind_rows)
 
 best_f1 <- ds_to_plot %>% group_by(params) %>% slice_max(f1, n = 1) %>% ungroup()
 
-# TODO: Write out best_f1 tibble
+# Write best F1 score per parameter set to .tsv file
+write_tsv(best_f1, out_tsv)
 
 theme_set(theme_classic())
 ds_to_plot %>%

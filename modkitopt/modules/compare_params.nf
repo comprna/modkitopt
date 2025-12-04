@@ -8,10 +8,11 @@ process COMPARE_PARAMS {
 
     output:
     path "pr_curves.png" , emit: pr_curves
+    path "best_f1_scores.tsv" , emit: best_f1_scores
     stdout emit: out_string
 
     script:
     """
-    compare_params.R ${precision_recall_results} pr_curves.png
+    compare_params.R ${precision_recall_results} best_f1_scores.tsv pr_curves.png
     """
 }
