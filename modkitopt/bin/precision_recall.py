@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import argparse
 import pickle
 
@@ -42,6 +41,7 @@ def main():
             pred_site = f"chr{chromosome}_{end}"
 
             # Only consider sites with coverage at least 20 reads
+            coverage = int(coverage)
             if coverage < 20:
                 continue
 
@@ -55,7 +55,6 @@ def main():
             # Aggregate transcriptomic sites corresponding to the same genomic
             # site by taking the average stoichiometry across transcriptomic
             # sites, weighted by transcript coverage
-            coverage = float(coverage)
             if pred_site in preds_all:
                 pred_sum, cov_sum = preds_all[pred_site]
                 pred_sum += stoich * coverage

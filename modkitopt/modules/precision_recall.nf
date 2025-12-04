@@ -16,7 +16,7 @@ process PRECISION_RECALL {
 
     script:
     """
-    eval.py \
+    precision_recall.py \
         --input_bed ${bed_genomic} \
         --truth ${ground_truth} \
         --output precision_recall_${filter_threshold}_${mod_threshold}.tsv
