@@ -25,6 +25,7 @@ include { SAMTOOLS_INDEX   } from './modules/samtools_index.nf'
 include { MODKIT_PILEUP    } from './modules/modkit_pileup.nf'
 include { T2G              } from './modules/t2g.nf'
 include { PRECISION_RECALL } from './modules/precision_recall.nf'
+include { COMPARE_PARAMS   } from './modules/compare_params.nf'
 
 workflow {
 
@@ -151,6 +152,18 @@ workflow {
 
     // Evaluate precision and recall
     ch_prec_recall = PRECISION_RECALL(ch_eval_params_input)
+
+    /*
+     * =========================================================================
+     *  Compare performance of modkit parameters
+     * =========================================================================
+     */
+
+    // Collect the results across all parameters
+    ch_prec_recall_collected = ch_prec_recall.precision_recall.collect()
+
+    ch_best_params = COMPARE_PARAMS(ch_prec_recall_collected)
+    ch_best_params.out_string.view()
 
 }
 
