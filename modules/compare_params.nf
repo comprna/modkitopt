@@ -1,6 +1,8 @@
 process COMPARE_PARAMS {
     tag "compare_params"
 
+    conda './env.yaml'
+
     publishDir params.outdir, mode: 'copy'
 
     input:

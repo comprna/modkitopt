@@ -7,3 +7,6 @@
 
 -- How to run
   -- Include profile (local, pbs, slurm) via -profile flag
+
+-- Explain how threads work (for pbs, slurm then 8 threads allocated per modkit pileup call)
+  -- Automatically handled by nextflow

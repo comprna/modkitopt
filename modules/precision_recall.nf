@@ -1,6 +1,8 @@
 process PRECISION_RECALL {
     tag "ft=${filter_threshold}, mt=${mod_threshold}"
 
+    conda './env.yaml'
+
     publishDir params.outdir, mode: 'copy'
 
     input:

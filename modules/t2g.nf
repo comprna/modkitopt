@@ -1,6 +1,8 @@
 process T2G {
     tag "${bed}"
 
+    conda './env.yaml'
+
     publishDir params.outdir, mode: 'copy'
 
     input:
