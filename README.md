@@ -4,7 +4,7 @@ ModkitOpt finds the best `--mod-thresold` and `--filter-threshold` parameters to
 
 ### Why use ModkitOpt?
 
-By default `--mod-threshold` and `--filter-threshold` are estimated by modkit using an algorithm that does not account for ... , which can result in false modification calls.
+By default, modkit estimates `--mod-threshold` and `--filter-threshold` by considering the confidence of dorado per-read modification predictions, without any knowledge of whether prediction confidence correlates with prediction accuracy. This means that for datasets where modification predictions overall have very low confidence (as is often the case for rare modification types), the modkit thresholds in turn will be low, which allows low confidence calls to pass the threshold and therefore lead to sites being incorrectly predicted as modified. Conversely, high thresholds can result in missing true sites. We show in our paper (referenced below) that the thresholds estimated by modkit are not optimised for precision or sensitivity.
 
 ### How ModkitOpt works
 
@@ -22,7 +22,7 @@ If you use this software, please cite:
 
 # Quick start
 
-To run locally using the example modBAM file we provide in modkitopt/resources, simply:
+To run locally using the example modBAM file we provide in `modkitopt/resources`, simply:
 
 **1. Clone the repository**
 
@@ -36,12 +36,12 @@ git clone ...
 
   * Download modkit_vXYZ.tar.gz from the [modkit release page](https://github.com/nanoporetech/modkit/releases)
   * Extract the archive contents
-  ```
-  tar -xvzf modkit_vXYZ.tar.gz
-  ```
+    ```
+    tar -xvzf modkit_vXYZ.tar.gz
+    ```
+* conda ([Miniconda installation guide](https://www.anaconda.com/docs/getting-started/miniconda/install))
+* nextflow ([installation guide](https://www.nextflow.io/docs/latest/install.html))
 
-* nextflow
-* conda
 
 Nextflow will automatically install all other dependencies using conda (environment defined in `modkitopt/env.yaml`) the first time that modkitopt is run.
 
@@ -64,38 +64,17 @@ nextflow run main.nf \
 
 # Running in HPC environments
 
-Before running modkitopt inside a job, first run it on a login node (or a node where internet is available) so that nextflow can create the conda environment.
+## Dependencies
 
-## Dependency installation
+The **modkit** binary that you downloaded and extracted in [Quick start](#quick-start) can simply be copied to your HPC storage location.
 
-Most of the following dependencies are often already provided in HPC environments as modules that can simply be loaded. If not, they need to be installed following the guidelines for your system.
-
-* modkit >= v0.6.0 (copy the downloaded binary to your HPC storage location)
-* nextflow >= X
-* samtools
-* python3
-* R >= X
-
-### R packages
-
-```bash
-$ R
-
-> install.packages(c("glue", "tidyverse", "rlist", "ggrepel","BiocManager"))
-> BiocManager::install(c("GenomicFeatures", "txdbmaker"))
-```
-
-*Note:* To enable R package installation in your HPC environment, you may need to first install some intel compiler packages. See your HPC documentation for guidance (e.g. For NCI's gadi: https://opus.nci.org.au/spaces/Help/pages/248840714/R).
-
-### A note on containers and conda in HPC environments
-
-We don't provide a container for running modkitopt since containers are not ideal for HPC environments. Although a container can be run anywhere, the installed software binaries are built to run on the container’s operating system and are therefore not optimised for the HPC environment's architecture, therefore potentially compromising performance. Similarly, conda is disabled by default for HPC environments (although you can modify this in nextflow.config by setting conda.enabled = true in the relevant profile).
-
+**Nextflow** and **conda** are often already provided in HPC environments as modules that can simply be loaded. If not, they need to be installed following the guidelines for your system.
 
 ## Run ModkitOpt
 
-To enable nextflow to ... specify your HPC environment with the `-profile` flag, such as `-profile pbs` or `-profile slurm`. For NCI's gadi use `-profile pbspro`
+Before running modkitopt inside a job, first run it on a login node (or a node where internet is available) so that nextflow can create the conda environment. Once the conda environment is created and the nextflow pipeline starts executing, you can kill the pipeline and then start it in a job.
 
+To enable nextflow to ... specify your HPC environment with the `-profile` flag, such as `-profile pbs` or `-profile slurm`. For NCI's gadi use `-profile pbspro`
 
 ```
 Command to run
@@ -127,9 +106,6 @@ nextflow run main.nf \
   -resume
 ```
 
-### How resources are allocated
-
--- Explain Nextflow manages threads (for pbs, slurm then 8 threads allocated per modkit pileup call - maximum recommended by ONT)
 
 ### Estimated run-time
 
