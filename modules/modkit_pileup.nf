@@ -20,8 +20,9 @@ process MODKIT_PILEUP {
     """
     ${params.modkit} pileup ${bam} \\
         "modkit_pileup_${filter_threshold}_${mod_threshold}.bed" \\
-        --modified-bases ${params.mod_type} \\
         --threads ${task.cpus} \\
+        --motif A 0 \\
+        --ignore 17596 \\
         --with-header \\
         --filter-threshold A:${filter_threshold} \\
         --mod-threshold a:${mod_threshold} \\
