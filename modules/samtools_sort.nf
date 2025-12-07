@@ -13,7 +13,6 @@ process SAMTOOLS_SORT {
 
     script:
     """
-    samtools sort ${bam} > ${bam}.sorted
-    echo "samtools sort: input ${bam}, emitting ${bam}.sorted"
+    samtools sort --threads ${task.cpus} ${bam} > ${bam}.sorted
     """
 }

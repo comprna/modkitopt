@@ -13,6 +13,6 @@ process SAMTOOLS_FILTER {
 
     script:
     """
-    samtools view -b -F 2324 ${bam} > ${bam}.filtered
+    samtools view -b -F 2324 --threads ${task.cpus} ${bam} > ${bam}.filtered
     """
 }
