@@ -1,5 +1,9 @@
 #!/usr/bin/env Rscript
-library(tidyverse)
+library(readr)
+library(dplyr)
+library(tibble)
+library(stringr)
+library(magrittr)
 library(glue)
 library(GenomicFeatures)
 

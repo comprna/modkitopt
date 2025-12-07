@@ -1,5 +1,9 @@
 #!/usr/bin/env Rscript
-library(tidyverse)
+library(readr)
+library(dplyr)
+library(magrittr)
+library(purrr)
+library(ggplot2)
 library(glue)
 library(rlist)
 library(ggrepel)
