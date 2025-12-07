@@ -21,12 +21,12 @@ process MODKIT_PILEUP {
     ${params.modkit} pileup ${bam} \\
         "modkit_pileup_${filter_threshold}_${mod_threshold}.bed" \\
         --threads ${task.cpus} \\
-        --motif A 0 \\
-        --ignore 17596 \\
+        --modified-bases ${params.mod_type} \\
         --with-header \\
         --filter-threshold A:${filter_threshold} \\
         --mod-threshold a:${mod_threshold} \\
         --log-filepath "modkit_pileup_${filter_threshold}_${mod_threshold}.log" \\
         --ref ${fasta} \\
+        --preload-references
     """
 }
