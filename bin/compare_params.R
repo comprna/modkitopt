@@ -15,22 +15,21 @@ library(tidyr)
 # Inputs
 ################################################################################
 
-# args        <- commandArgs(trailingOnly = TRUE)
-# files       <- head(args, -3) # Results files, one per modkit parameter set
-# out_tsv     <- tail(args, 3)[1] # 3rd last arg is the filepath to write F1 scores
-# out_pr_plot <- tail(args, 2)[1] # 2nd last arg is the precision-recall curve filepath
-# out_barplot <- tail(args, 1) # Last arg is the barplot filepath
+args        <- commandArgs(trailingOnly = TRUE)
+files       <- head(args, -3) # Results files, one per modkit parameter set
+out_tsv     <- tail(args, 3)[1] # 3rd last arg is the filepath to write F1 scores
+out_pr_plot <- tail(args, 2)[1] # 2nd last arg is the precision-recall curve filepath
+out_barplot <- tail(args, 1) # Last arg is the barplot filepath
 
-out_tsv <- "/home/alex/Documents/repos/modkitopt/results/best_f1.tsv"
-out_pr_plot <- "/home/alex/Documents/repos/modkitopt/results/pr_curves.png"
-out_barplot <- "/home/alex/Documents/repos/modkitopt/results/barplot.png"
+# out_tsv <- "/home/alex/Documents/repos/modkitopt/results/best_f1.tsv"
+# out_pr_plot <- "/home/alex/Documents/repos/modkitopt/results/pr_curves.png"
+# out_barplot <- "/home/alex/Documents/repos/modkitopt/results/barplot.png"
+# dir <- "/home/alex/Documents/repos/modkitopt/results"
+# files <- list.files(path=dir, pattern='^precision(.)*.tsv', full.names = TRUE)
 
 ################################################################################
 # Load precision recall results for each modkit parameter set
 ################################################################################
-
-dir <- "/home/alex/Documents/repos/modkitopt/results"
-files <- list.files(path=dir, pattern='^precision(.)*.tsv', full.names = TRUE)
 
 ds_list <- list()
 for (file in files)
