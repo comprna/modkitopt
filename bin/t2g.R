@@ -37,7 +37,8 @@ process_chunk <- function(df, pos) {
   # Get the transcriptomic sites
   tx_coords <- GRanges(
     seqnames = df$chrom,
-    ranges   = IRanges(start = df$chromStart, end = df$chromEnd),
+    # bedMethyl is 0-based, gff is 1-based, so mod position is chromEnd in bedMethyl
+    ranges   = IRanges(start = df$chromEnd, end = df$chromEnd),
     valid_coverage   = df$valid_coverage,
     percent_modified = df$percent_modified
   )
