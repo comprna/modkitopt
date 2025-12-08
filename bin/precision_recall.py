@@ -37,7 +37,7 @@ def main():
             coverage, stoich = fields[-2:]
             chromosome, start, end = fields[:3]
             chromosome = chromosome.lstrip("chr")
-            pred_site = f"chr{chromosome}_{end}"
+            pred_site = f"{chromosome}_{end}"
 
             # Only consider sites with coverage at least 20 reads
             coverage = int(coverage)
@@ -50,6 +50,9 @@ def main():
             except:
                 print(f"Skipped: {line}")
                 continue
+
+            # Convert stoichiometry from % to fraction
+            stoich = stoich / 100
 
             # Aggregate transcriptomic sites corresponding to the same genomic
             # site by taking the average stoichiometry across transcriptomic
