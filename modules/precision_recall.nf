@@ -3,7 +3,7 @@ process PRECISION_RECALL {
 
     conda './env.yaml'
 
-    publishDir params.outdir, mode: 'copy'
+    publishDir params.outdir_pr, mode: 'copy'
 
     input:
     tuple path(bed_genomic),

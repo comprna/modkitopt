@@ -3,7 +3,7 @@ process SAMTOOLS_SORT {
 
     conda './env.yaml'
 
-    publishDir params.outdir, mode: 'copy'
+    publishDir params.outdir_samtools, mode: 'copy'
 
     input:
     path bam

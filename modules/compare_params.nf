@@ -3,7 +3,7 @@ process COMPARE_PARAMS {
 
     conda './env.yaml'
 
-    publishDir params.outdir, mode: 'copy'
+    publishDir params.outdir_params, mode: 'copy'
 
     input:
     path(precision_recall_results)
