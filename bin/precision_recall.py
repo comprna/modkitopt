@@ -23,7 +23,7 @@ def main():
         f.readline()
         for line in f:
             fields = line.split("\t")
-            seqname = fields[0]
+            seqname = fields[0].lstrip("chr")
             site = fields[1]
             truth_sites.add(f"{seqname}_{site}")
 
@@ -36,6 +36,7 @@ def main():
             fields = line.strip().split("\t")
             coverage, stoich = fields[-2:]
             chromosome, start, end = fields[:3]
+            chromosome = chromosome.lstrip("chr")
             pred_site = f"chr{chromosome}_{end}"
 
             # Only consider sites with coverage at least 20 reads
