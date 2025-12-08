@@ -145,11 +145,23 @@ best_params    <- best_f1 %>% slice_max(f1) %>% pull(params)
 best_filter_threshold <- str_split_i(str_split_i(best_params, ",", 1), " ", 2)
 best_mod_threshold    <- str_split_i(str_split_i(best_params, ",", 2), " ", -1)
 
-output <- "\n\nThe optimal modkit pileup parameters are:\n\n"
-output <- paste(output, glue(">>> filter_threshold:\t{best_filter_threshold}\n\n"))
-output <- paste(output, glue(">>> mod_threshold:\t{best_mod_threshold}\n\n\n"))
-output <- paste(output, glue("With optimal stoichiometry threshold:\n\n\n"))
-output <- paste(output, glue(">>> Threshold: {best_threshold}\n\n\n"))
-output <- paste(output, glue("Achieving an F1 score of {best_f1_value}\n\n"))
+if (length(best_params) > 1)
+{
+  output <- "\n\nThe optimal modkit pileup parameters are as follows"
+  output <- paste(output, "(in this case, more than one parameter set achieved the highest F1 score):\n\n")
+  output <- paste(output, glue(">>> filter_threshold:\t{best_filter_threshold}\n\n"))
+  output <- paste(output, glue(">>> mod_threshold:\t{best_mod_threshold}\n\n\n"))
+  output <- paste(output, glue("With optimal stoichiometry threshold:\n\n\n"))
+  output <- paste(output, glue(">>> Threshold: {best_threshold}\n\n\n"))
+  output <- paste(output, glue("Achieving an F1 score of {round(best_f1_value, 3)}\n\n"))
+} else
+{
+  output <- "\n\nThe optimal modkit pileup parameters are:\n\n"
+  output <- paste(output, glue(">>> filter_threshold:\t{best_filter_threshold}\n\n"))
+  output <- paste(output, glue(">>> mod_threshold:\t{best_mod_threshold}\n\n\n"))
+  output <- paste(output, glue("With optimal stoichiometry threshold:\n\n\n"))
+  output <- paste(output, glue(">>> Threshold: {best_threshold}\n\n\n"))
+  output <- paste(output, glue("Achieving an F1 score of {round(best_f1_value, 3)}\n\n"))
+}
 
 cat(output)
