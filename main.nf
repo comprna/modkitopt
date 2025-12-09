@@ -53,6 +53,20 @@ workflow {
         exit 1, "ERROR: Please provide the path to the reference annotation (.gtf or .gff3) via --annotation"
     }
 
+    // HPC parameters must be specified if using pbs, pbspro or slurm
+    def hpcProfiles = ['pbs','pbspro','slurm']
+
+    if (workflow.profile in hpcProfiles) {
+        if (!params.hpc_project) {
+            exit 1, "ERROR: --hpc_project must be specified when using profile '${workflow.profile}'."
+        }
+        if (!params.hpc_storage) {
+            exit 1, "ERROR: --hpc_storage must be specified when using profile '${workflow.profile}'."
+        }
+        if (!params.hpc_queue) {
+            exit 1, "ERROR: --hpc_queue must be specified when using profile '${workflow.profile}'."
+        }
+    }
 
     // Validate modification type
     assert params.mod_type in ['m6A','m5C','pseU','other'], \
