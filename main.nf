@@ -97,7 +97,8 @@ workflow {
     ch_modkit_params = channel.from(params.filter_thresholds)
                               .combine(channel.from(params.mod_thresholds))
                               .map { ft, mt -> tuple(ft, mt) }
- 
+                              .mix(Channel.value(["default", "default"]))
+
     // Create a channel for the reference fasta file
     ch_fasta = channel.fromPath(params.fasta, checkIfExists: true)
 

@@ -3,7 +3,7 @@ process T2G {
 
     conda './env.yaml'
 
-    publishDir params.outdir, mode: 'copy'
+    publishDir params.outdir_t2g, mode: 'copy'
 
     input:
     tuple path(bed), val(filter_threshold), val(mod_threshold), path(gff)
