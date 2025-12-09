@@ -8,15 +8,15 @@ library(GenomicFeatures)
 
 # Inputs
 args = commandArgs(trailingOnly = TRUE)
-file_bed <- args[1]
-gff      <- args[2]
+file_bed   <- args[1]
+annotation <- args[2]
 
 # Output file
 outfile <- glue("{file_bed}.genomic")
 if (file.exists(outfile)) file.remove(outfile)
 
 # Build the reference database
-txdb  <- makeTxDbFromGFF(gff, format = "gff3")
+txdb  <- makeTxDbFromGFF(annotation)
 
 # Get all exons by transcript
 exons <- exonsBy(txdb, by = "tx", use.names = TRUE)
@@ -37,7 +37,7 @@ process_chunk <- function(df, pos) {
   # Get the transcriptomic sites
   tx_coords <- GRanges(
     seqnames = df$chrom,
-    # bedMethyl is 0-based, gff is 1-based, so mod position is chromEnd in bedMethyl
+    # bedMethyl is 0-based, gtf/gff3 is 1-based, so mod position is chromEnd in bedMethyl
     ranges   = IRanges(start = df$chromEnd, end = df$chromEnd),
     valid_coverage   = df$valid_coverage,
     percent_modified = df$percent_modified

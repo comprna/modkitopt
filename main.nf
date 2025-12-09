@@ -49,8 +49,8 @@ workflow {
     if (!params.fasta) {
         exit 1, "ERROR: Please provide the path to the reference transriptome via --fasta"
     }
-    if (!params.gff) {
-        exit 1, "ERROR: Please provide the path to the reference annotation via --gff"
+    if (!params.annotation) {
+        exit 1, "ERROR: Please provide the path to the reference annotation (.gtf or .gff3) via --annotation"
     }
 
 
@@ -127,10 +127,10 @@ workflow {
      */
 
     // Create a channel for the reference annotation
-    ch_gff = channel.fromPath(params.gff, checkIfExists: true)
+    ch_annotation = channel.fromPath(params.annotation, checkIfExists: true)
 
     // Combine the annotation with the bed file channel
-    ch_t2g_input = ch_bed_params.combine(ch_gff)
+    ch_t2g_input = ch_bed_params.combine(ch_annotation)
 
     // Convert transcriptomic to genomic coordinates
     ch_modkit_genomic = T2G(ch_t2g_input)
