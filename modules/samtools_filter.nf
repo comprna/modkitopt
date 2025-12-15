@@ -3,7 +3,7 @@ process SAMTOOLS_FILTER {
 
     conda './env.yaml'
 
-    publishDir params.outdir_samtools, mode: 'copy'
+    publishDir "${params.top_outdir}/samtools", mode: 'copy'
 
     input:
     path bam
