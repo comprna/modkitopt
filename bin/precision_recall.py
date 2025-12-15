@@ -95,7 +95,9 @@ def main():
             index_p += 1
         else:
             index_t += 1
-            out_vals.append([thresh, 1 - index_p/len(p_validated), len(p_validated) - index_p])
+            n_true_positives = len(p_validated) - index_p # No. of predictions that exceed the threshold
+            recall = n_true_positives / len(truth_sites)
+            out_vals.append([thresh, recall, n_true_positives])
 
     while index_t < len(thresholds):
         thresh = thresholds[index_t]
@@ -112,11 +114,12 @@ def main():
             index_p += 1
         else:
             index_t += 1
-            out_vals_all.append([thresh, 1 - index_p/len(p_all), len(p_all) - index_p])
+            n_predicted_positives = len(p_all) - index_p
+            out_vals_all.append([thresh, n_predicted_positives])
 
     while index_t < len(thresholds):
         thresh = thresholds[index_t]
-        out_vals_all.append([thresh, 0, 0])
+        out_vals_all.append([thresh, 0])
         index_t += 1
 
     # Write metrics to file
@@ -126,10 +129,10 @@ def main():
         # precision   --> proportion of predicted sites that were validated
         out.write("threshold\trecall\tprecision\n")
         for i, row in enumerate(out_vals):
-            thresh, recall, tp = row
-            thresh, _, all_pred = out_vals_all[i]
-            if all_pred > 0:
-                precision = tp / all_pred
+            thresh, recall, n_true_positives = row
+            thresh, n_predicted_positives = out_vals_all[i]
+            if n_predicted_positives > 0:
+                precision = n_true_positives / n_predicted_positives
             else:
                 precision = 0
             out.write(f"{thresh}\t{recall:.3f}\t{precision:.3f}\n")
