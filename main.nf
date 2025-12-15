@@ -90,6 +90,13 @@ workflow {
         ground_truth = params.ground_truth
     }
     
+    // Where to write outputs
+    params.outdir_samtools = "${params.top_outdir}/samtools"
+    params.outdir_t2g      = "${params.top_outdir}/t2g"
+    params.outdir_pileup   = "${params.top_outdir}/pileup"
+    params.outdir_pr       = "${params.top_outdir}/precision_recall"
+    params.outdir_params   = "${params.top_outdir}/compare_params"
+
     /*
      * =========================================================================
      *  Filter, sort and index BAM
