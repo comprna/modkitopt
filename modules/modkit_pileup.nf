@@ -1,7 +1,7 @@
 process MODKIT_PILEUP {
     tag "ft=${filter_threshold}, mt=${mod_threshold}"
 
-    publishDir "${params.top_outdir}/pileup", mode: 'copy'
+    publishDir "${params.top_outdir}/2_pileup", mode: 'copy'
 
     input:
     tuple path(bam),

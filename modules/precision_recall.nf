@@ -3,7 +3,7 @@ process PRECISION_RECALL {
 
     conda './env.yaml'
 
-    publishDir "${params.top_outdir}/precision_recall", mode: 'copy'
+    publishDir "${params.top_outdir}/4_precision_recall", mode: 'copy'
 
 
     input:
