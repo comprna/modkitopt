@@ -39,7 +39,7 @@ for (file in files)
 
   file %>%
     read_tsv() %>%
-    mutate(params = glue("f: {filter_threshold}, m: {mod_threshold}"),
+    mutate(params = glue("{filter_threshold}, {mod_threshold}"),
            f1 = 2 * precision * recall / (precision + recall)) ->
   ds
 
@@ -113,7 +113,7 @@ best_f1 %>%
   mutate(name = factor(name, levels = c("f1", "precision", "recall"))) %>%
   ggplot(aes(x = params, y = metric, fill = name)) +
     geom_col(position = position_dodge(width = 0.7), width = 0.7) +
-    labs(x = "Modkit parameters",
+    labs(x = "Modkit parameters (filter-threshold, mod-threshold)",
          y = "Value",
          fill = "Metric") +
     scale_fill_manual(labels = c("F1", "Precision", "Recall"),
