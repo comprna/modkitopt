@@ -41,7 +41,7 @@ workflow {
         exit 1, "ERROR: Please provide --modbam (.bam file output by modification caller)"
     }
     if (!params.mod_type) {
-        exit 1, "ERROR: Please provide --mod_type (options: m6A, m5C, pseU, other)"
+        exit 1, "ERROR: Please provide --mod_type (options: m6A, pseU, m5C, inosine)"
     }
     if (!params.modkit) {
         exit 1, "ERROR: Please provide the path to modkit via --modkit"
@@ -69,8 +69,8 @@ workflow {
     }
 
     // Validate modification type
-    assert params.mod_type in ['m6A','m5C','pseU','other'], \
-        "Modification type not recognised, choose from: m6A, m5C, pseU, other"
+    assert params.mod_type in ['m6A','pseU','m5C','inosine'], \
+        "Modification type not recognised, choose from: m6A, pseU, m5C, inosine"
 
     // Validate ground truth
     def ground_truth
@@ -86,9 +86,9 @@ workflow {
             ground_truth = "./resources/pseU_validated.tsv"
             log.warn "No --ground_truth supplied for --mod_type pseU; using default '${ground_truth}'"
 
-        // ground_truth must be provided for mods other than m6A
+        // ground_truth must be provided for mods other than m6A or pseU
         } else {
-            exit 1, "ERROR: --ground_truth is required when mod_type is not m6A"
+            exit 1, "ERROR: --ground_truth is required when mod_type is not m6A or pseU"
         }
 
     } else {

@@ -18,11 +18,28 @@ process MODKIT_PILEUP {
 
     script:
 
+    def canonical_base_map = [
+      m6A:     'A',
+      pseU:    'T',
+      m5C:     'C',
+      inosine: 'A'
+    ]
+
+    def mod_code_map = [
+      m6A:     'a',
+      pseU:    '17802',
+      m5C:     'm',
+      inosine: '17596'
+    ]
+
+    def canonical_base = canonical_base_map[params.mod_type]
+    def mod_code = mod_code_map[params.mod_type]
+
     def filter_opt = filter_threshold == 'default' ? '' :
-                      "--filter-threshold A:${filter_threshold}"
+                      "--filter-threshold ${canonical_base}:${filter_threshold}"
 
     def mod_opt    = mod_threshold == 'default' ? '' :
-                      "--mod-threshold a:${mod_threshold}"
+                      "--mod-threshold ${mod_code}:${mod_threshold}"
 
     """
     ${params.modkit} pileup ${bam} \\
