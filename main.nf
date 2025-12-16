@@ -78,8 +78,13 @@ workflow {
 
         // If no ground_truth provided for m6A, then use supplied default
         if (params.mod_type == "m6A") {
-            ground_truth = "./resources/m6A_validated.pickle"
+            ground_truth = "./resources/m6A_validated.tsv"
             log.warn "No --ground_truth supplied for --mod_type m6A; using default '${ground_truth}'"
+
+        // If no ground_truth provided for pseU, then use supplied default
+        if (params.mod_type == "pseU") {
+            ground_truth = "./resources/pseU_validated.tsv"
+            log.warn "No --ground_truth supplied for --mod_type pseU; using default '${ground_truth}'"
 
         // ground_truth must be provided for mods other than m6A
         } else {
