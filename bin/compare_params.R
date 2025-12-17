@@ -141,8 +141,8 @@ best_f1_value  <- best_f1 %>% slice_max(f1) %>% pull(f1)
 best_params    <- best_f1 %>% slice_max(f1) %>% pull(params)
 
 # Extract best individual modkit parameters
-best_filter_threshold <- str_split_i(str_split_i(best_params, ",", 1), " ", 2)
-best_mod_threshold    <- str_split_i(str_split_i(best_params, ",", 2), " ", -1)
+best_filter_threshold <- str_split_i(best_params, ",", 1)
+best_mod_threshold    <- str_split_i(best_params, " ", 2)
 
 if (length(best_params) > 1)
 {
