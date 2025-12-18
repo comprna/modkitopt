@@ -68,7 +68,7 @@ nextflow run main.nf                                          \
 
 # Running in HPC environments
 
-We recommend running ModkitOpt in an HPC environment, since modkit is called several times with different thresholds. Nextflow handles submitting modkit jobs so that they can run at the same time, reducing the overall execution time of ModkitOpt.
+**We recommend running ModkitOpt in an HPC environment**, since modkit is called several times with different thresholds. Nextflow handles submitting modkit jobs so that they can run at the same time, reducing the overall execution time of ModkitOpt.
 
 ## Dependencies
 
@@ -173,6 +173,7 @@ For example, to increase the number of CPUs used for modkit pileup, you simply a
 
 # Command details
 
+```
 Usage:
 The typical command structure for running the pipeline is as follows:
 nextflow run main.nf --modbam sample.bam
@@ -198,6 +199,7 @@ Mandatory arguments if running on an HPC system (-profile is pbs, pbspro or slur
 
 Optional arguments:
   --truth_sites        .tsv file containing known modification sites (genomic coordinates, expected columns 1 and 2: [chr, pos], mandatory if mod_type is m5C or inosine)
+```
 
 # Tested environments and software versions
 
