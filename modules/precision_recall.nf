@@ -10,7 +10,7 @@ process PRECISION_RECALL {
     tuple path(bed_genomic),
           val(filter_threshold),
           val(mod_threshold),
-          path(ground_truth)
+          path(truth_sites)
 
     output:
     path "precision_recall_${filter_threshold}_${mod_threshold}.tsv" , emit: precision_recall
@@ -21,7 +21,7 @@ process PRECISION_RECALL {
     """
     precision_recall.py \
         --input_bed ${bed_genomic} \
-        --truth ${ground_truth} \
+        --truth ${truth_sites} \
         --output precision_recall_${filter_threshold}_${mod_threshold}.tsv
     """
 }

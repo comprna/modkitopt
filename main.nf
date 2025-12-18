@@ -29,6 +29,36 @@ include { T2G              } from './modules/t2g.nf'
 include { PRECISION_RECALL } from './modules/precision_recall.nf'
 include { COMPARE_PARAMS   } from './modules/compare_params.nf'
 
+def helpMessage() {
+  log.info """
+        Usage:
+        The typical command structure for running the pipeline is as follows:
+        nextflow run main.nf --modbam sample.bam
+                             --mod_type <m6A|pseU|m5C|inosine>
+                             --modkit /path/to/modkit
+                             --fasta /path/to/transcriptome.fa
+                             --annotation /path/to/annotation.gff3
+                             -profile <local|pbs|pbspro|slurm>
+
+        Mandatory arguments:
+         --modbam             .bam file containing per-read modification calls
+         --mod_type           Modification type (options: m6A, pseU, m5C, inosine)
+         --modkit             Path to modkit executable
+         --fasta              Path to reference transcriptome
+         --annotation         Path to corresponding reference annotation (.gtf or .gff3)
+         -profile             Execution environment (options: local, pbs, pbspro, slurm)
+
+        Mandatory arguments if running on an HPC system (-profile is pbs, pbspro or slurm):
+         --hpc_queue          Name of the queue that Nextflow can schedule jobs to (e.g., 'normal')
+         --hpc_project        HPC project code that Nextflow can schedule jobs to (e.g., 'ab12')
+         --hpc_storage        HPC storage location that outputs can be written to (e.g., 'gdata/ab12')
+         --help               This usage statement
+
+        Optional arguments:
+         --truth_sites        .tsv file containing known modification sites (genomic coordinates, expected columns 1 and 2: [chr, pos], mandatory if mod_type is m5C or inosine)
+        """
+}
+
 workflow {
 
     /*
@@ -37,6 +67,10 @@ workflow {
      * =========================================================================
      */
     
+    if (params.help) {
+      helpMessage()
+      exit 0
+    }
     if (!params.modbam) {
         exit 1, "ERROR: Please provide --modbam (.bam file output by modification caller)"
     }
@@ -73,26 +107,26 @@ workflow {
         "Modification type not recognised, choose from: m6A, pseU, m5C, inosine"
 
     // Validate ground truth
-    def ground_truth
-    if (!params.ground_truth) {
+    def truth_sites
+    if (!params.truth_sites) {
 
-        // If no ground_truth provided for m6A, then use supplied default
+        // If no ground truth sites provided for m6A, then use supplied default
         if (params.mod_type == "m6A") {
-            ground_truth = "./resources/m6A_validated.tsv"
-            log.warn "No --ground_truth supplied for --mod_type m6A; using default '${ground_truth}'"
+            truth_sites = "./resources/m6A_validated.tsv"
+            log.warn "No --truth_sites supplied for --mod_type m6A; using default '${truth_sites}'"
 
-        // If no ground_truth provided for pseU, then use supplied default
+        // If no ground truth sites provided for pseU, then use supplied default
         } else if (params.mod_type == "pseU") {
-            ground_truth = "./resources/pseU_validated.tsv"
-            log.warn "No --ground_truth supplied for --mod_type pseU; using default '${ground_truth}'"
+            truth_sites = "./resources/pseU_validated.tsv"
+            log.warn "No --truth_sites supplied for --mod_type pseU; using default '${truth_sites}'"
 
-        // ground_truth must be provided for mods other than m6A or pseU
+        // Ground truth sites must be provided for mods other than m6A or pseU
         } else {
-            exit 1, "ERROR: --ground_truth is required when mod_type is not m6A or pseU"
+            exit 1, "ERROR: --truth_sites is required when mod_type is not m6A or pseU"
         }
 
     } else {
-        ground_truth = params.ground_truth
+        truth_sites = params.truth_sites
     }
 
     /*
@@ -167,7 +201,7 @@ workflow {
      */
     
     // Create a channel for the ground truth sites
-    ch_truth = channel.fromPath(ground_truth, checkIfExists: true)
+    ch_truth = channel.fromPath(truth_sites, checkIfExists: true)
 
     // Combine the channels for ground truth sites and modkit sites
     ch_eval_params_input = ch_genomic_params.combine(ch_truth)
