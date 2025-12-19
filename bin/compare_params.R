@@ -19,7 +19,7 @@ args            <- commandArgs(trailingOnly = TRUE)
 files           <- head(args, -4) # Results files, one per modkit parameter set
 out_tsv         <- tail(args, 4)[1] # 4th last arg is the filepath to write F1 scores
 out_pr_plot     <- tail(args, 3)[1] # 3rd last arg is the precision-recall curve filepath
-out_barplot     <- tail(args, 2) # 2nd last arg is the barplot filepath
+out_barplot     <- tail(args, 2)[1] # 2nd last arg is the barplot filepath
 out_scatterplot <- tail(args, 1) # Last arg is the scatterplot filepath
 
 ################################################################################
@@ -121,6 +121,8 @@ ggsave(out_barplot, height = 8, width = 14)
 ################################################################################
 # Plot the F1 score across the threshold parameter space
 ################################################################################
+
+mk_purple_tyrian <- "#68023F"
 
 best_f1 %>%
   separate_wider_delim(params, delim = ", ", names = c("filter_threshold", "mod_threshold")) %>%
