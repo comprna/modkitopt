@@ -10,13 +10,13 @@ process COMPARE_PARAMS {
 
     output:
     path "barplot.png" , emit: barplot
-    path "advanced/pr_curves.png" , emit: pr_curves
-    path "advanced/scatterplot.png" , emit: scatterplot
-    path "advanced/best_f1_scores.tsv" , emit: best_f1_scores
+    path "ADVANCED_pr_curves.png" , emit: pr_curves
+    path "ADVANCED_scatterplot.png" , emit: scatterplot
+    path "ADVANCED_best_f1_scores.tsv" , emit: best_f1_scores
     stdout emit: out_string
 
     script:
     """
-    compare_params.R ${precision_recall_results} advanced/best_f1_scores.tsv advanced/pr_curves.png barplot.png advanced/scatterplot.png
+    compare_params.R ${precision_recall_results} ADVANCED_best_f1_scores.tsv ADVANCED_pr_curves.png barplot.png ADVANCED_scatterplot.png
     """
 }

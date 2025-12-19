@@ -106,7 +106,7 @@ best_f1 %>%
          y = "Value",
          fill = "Metric") +
     scale_fill_manual(labels = c("F1", "Precision", "Recall", "Stoich. cutoff"),
-                      values = c(br_pink, brewer_tan, br_green, mk_violet)) +
+                      values = c(mk_violet, br_pink, br_green, brewer_tan)) +
     ylim(0, 1) +
     theme(text = element_text(family = "Helvetica"),
           axis.text = element_text(size = 20),
