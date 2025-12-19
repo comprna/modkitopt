@@ -15,17 +15,12 @@ library(tidyr)
 # Inputs
 ################################################################################
 
-args        <- commandArgs(trailingOnly = TRUE)
-files       <- head(args, -3) # Results files, one per modkit parameter set
-out_tsv     <- tail(args, 3)[1] # 3rd last arg is the filepath to write F1 scores
-out_pr_plot <- tail(args, 2)[1] # 2nd last arg is the precision-recall curve filepath
-out_barplot <- tail(args, 1) # Last arg is the barplot filepath
-
-# out_tsv <- "/home/alex/Documents/repos/modkitopt/results/best_f1.tsv"
-# out_pr_plot <- "/home/alex/Documents/repos/modkitopt/results/pr_curves.png"
-# out_barplot <- "/home/alex/Documents/repos/modkitopt/results/barplot.png"
-# dir <- "/home/alex/Documents/repos/modkitopt/results"
-# files <- list.files(path=dir, pattern='^precision(.)*.tsv', full.names = TRUE)
+args            <- commandArgs(trailingOnly = TRUE)
+files           <- head(args, -4) # Results files, one per modkit parameter set
+out_tsv         <- tail(args, 4)[1] # 4th last arg is the filepath to write F1 scores
+out_pr_plot     <- tail(args, 3)[1] # 3rd last arg is the precision-recall curve filepath
+out_barplot     <- tail(args, 2) # 2nd last arg is the barplot filepath
+out_scatterplot <- tail(args, 1) # Last arg is the scatterplot filepath
 
 ################################################################################
 # Load precision recall results for each modkit parameter set
@@ -94,30 +89,24 @@ ggsave(out_pr_plot, height = 10, width = 8)
 # stoichiometry cut-off)
 ################################################################################
 
-brewer_blue <- "#8DA0CB"
-brewer_pink <- "#E78AC3"
 brewer_tan <- "#E5C494"
-
-br_purple <- "#6f01ac"
 br_pink <- "#ff00a8"
-br_yellow <- "#fdb027"
 br_green <- "#00af8d"
-br_blue <- "#0da1ff"
-br_grey <- "#605c5c"
+mk_violet <- "#8400CD"
 
 best_f1 %>%
-  select(params, f1, precision, recall) %>%
+  select(params, f1, precision, recall, threshold) %>%
   arrange(desc(f1)) %>%
   mutate(params = factor(params, levels = params)) %>%
-  pivot_longer(cols = c("recall", "precision", "f1"), values_to = "metric") %>%
-  mutate(name = factor(name, levels = c("f1", "precision", "recall"))) %>%
+  pivot_longer(cols = c("recall", "precision", "f1", "threshold"), values_to = "metric") %>%
+  mutate(name = factor(name, levels = c("f1", "precision", "recall", "threshold"))) %>%
   ggplot(aes(x = params, y = metric, fill = name)) +
     geom_col(position = position_dodge(width = 0.7), width = 0.7) +
-    labs(x = "Modkit parameters (filter-threshold, mod-threshold)",
+    labs(x = "Modkit parameters (--filter_threshold, --mod_threshold)",
          y = "Value",
          fill = "Metric") +
-    scale_fill_manual(labels = c("F1", "Precision", "Recall"),
-                      values = c(br_pink, brewer_tan, br_green)) +
+    scale_fill_manual(labels = c("F1", "Precision", "Recall", "Stoich. cutoff"),
+                      values = c(br_pink, brewer_tan, br_green, mk_violet)) +
     ylim(0, 1) +
     theme(text = element_text(family = "Helvetica"),
           axis.text = element_text(size = 20),
@@ -129,6 +118,20 @@ best_f1 %>%
 
 ggsave(out_barplot, height = 8, width = 14)
 
+################################################################################
+# Plot the F1 score across the threshold parameter space
+################################################################################
+
+best_f1 %>%
+  separate_wider_delim(params, delim = ", ", names = c("filter_threshold", "mod_threshold")) %>%
+  mutate(filter_threshold = as.numeric(filter_threshold),
+         mod_threshold    = as.numeric(mod_threshold)) %>%
+  ggplot(aes(x = filter_threshold, y = mod_threshold, size = f1)) +
+    geom_point(colour = mk_purple_tyrian, alpha = 0.4) +
+    scale_size_continuous(range = c(2, 7)) +
+    theme(text = element_text(family = "Helvetica"))
+
+ggsave(out_scatterplot, height = 4, width = 4)
 
 ################################################################################
 # Return the modkit parameters and stoichiometry threshold that gives best F1
