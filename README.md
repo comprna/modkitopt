@@ -18,7 +18,7 @@ Validated reference sites are supplied for mammalian N6-methyladenosine (m6A) an
   <img src="design.png" width="1000">
 </p>
 
-### Citation
+# Citation
 
 If you use this software, please cite:
 
