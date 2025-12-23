@@ -10,7 +10,7 @@ We show in our manuscript (referenced below) that the default modkit performance
 
 ### How ModkitOpt works
 
-ModkitOpt takes as input a modBAM file containing dorado per-read modification calls, efficiently and systematically scans 36,000 combinations of modkit thresholds (`--filter-threshold` and `--mod-threshold`) and downstream stoichiometry cutoffs, and evaluates predicted sites against validated reference sites to quantify precision and recall. ModkitOpt identifies the optimal threshold combination, and corresponding stoichiometry cutoff, that maximises the F1 score ($2*precision*recall/(precision+recall)$).
+ModkitOpt takes as input a modBAM file containing dorado per-read modification calls, efficiently and systematically scans 36,000 combinations of modkit thresholds (`--filter-threshold` and `--mod-threshold`) and downstream stoichiometry cutoffs, and evaluates predicted sites against validated reference sites to quantify precision and recall. ModkitOpt identifies the optimal threshold combination, and corresponding stoichiometry cutoff, that maximises the F1 score ( $2 \cdot precision \cdot recall/(precision+recall)$ ).
 
 Validated reference sites are supplied for mammalian N6-methyladenosine (m6A) and pseudouridine (pseU), which can be used for nanopore datasets that originate from a different biological sample, provided a subset of sites are shared with the reference. For other modification types, a reference set can be supplied by the user.
 
