@@ -1,6 +1,6 @@
 # ModkitOpt
 
-ModkitOpt finds the best `--mod-threshold` and `--filter-threshold` parameters to use when running `modkit pileup`, and the best stoichiometry for filtering modkit's bedMethyl output, to maximise the sensitivity and recall of your nanopore direct RNA modification calls.
+ModkitOpt finds the best `--mod-threshold` and `--filter-threshold` parameters to use when running `modkit pileup`, and the best stoichiometry cutoff for filtering modkit's bedMethyl output, to maximise the sensitivity and recall of your nanopore direct RNA modification calls.
 
 ### Why use ModkitOpt?
 
@@ -48,7 +48,7 @@ Nextflow will automatically install all other dependencies using conda (environm
 
 **3. Run ModkitOpt**
 
-Example running ModkitOpt for a modBAM file containing m6A calls aligned to the human reference transcriptome (GRCh38.p14, release 45).
+Run ModkitOpt on an example modBAM file containing m6A calls aligned to the human reference transcriptome (GRCh38.p14, release 45). To run this example, you need to use the same GENCODE human reference transcriptome and corresponding annotation ([GRCh38.p14, release 45](https://www.gencodegenes.org/human/release_45.html)) that was used to create the modBAM file.
 
 **Important note:** This example demonstrates how the Nextflow pipeline operates, but the modBAM file is too small for ModkitOpt to provide a meaningful output.
 
@@ -102,7 +102,8 @@ You must specify the HPC project code that Nextflow can schedule jobs to using t
 
 **4. Your HPC storage location**
 
-You must specify your HPC storage location using the `--hpc_storage` flag, such as `--hpc_storage gdata/ab12`.
+You must specify your HPC storage location using the `--hpc_storage` flag. This should list all storage locations for your input files, conda environment, and the modkit repo, 
+ such as `--hpc_storage gdata/ab12+gdata/cd34+scratch/ab12`.
 
 ### Command example
 
@@ -198,7 +199,7 @@ Mandatory arguments if running on an HPC system (-profile is pbs, pbspro or slur
   --help               This usage statement
 
 Optional arguments:
-  --truth_sites        .tsv file containing known modification sites (genomic coordinates, expected columns 1 and 2: [chr, pos], mandatory if mod_type is m5C or inosine)
+  --truth_sites        .tsv file containing known modification sites (genomic 1-based coordinates, expected columns 1 and 2: [chr, pos], mandatory if mod_type is m5C or inosine)
 ```
 
 # Tested environments and software versions
