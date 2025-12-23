@@ -1,16 +1,18 @@
 # ModkitOpt
 
-ModkitOpt finds the best `--mod-threshold` and `--filter-threshold` parameters to use when running `modkit pileup`, and the best stoichiometry cutoff for filtering modkit's bedMethyl output, to maximise the sensitivity and recall of your nanopore direct RNA modification calls.
+ModkitOpt finds the best `--mod-threshold` and `--filter-threshold` parameters to use when running `modkit pileup`, and the best stoichiometry cutoff for filtering modkit's bedMethyl output, to maximise the precision and recall of your nanopore direct RNA modification calls.
 
 ### Why use ModkitOpt?
 
-By default, modkit estimates `--mod-threshold` and `--filter-threshold` by considering the confidence of dorado per-read modification predictions, without any knowledge of whether prediction confidence correlates with prediction accuracy. This means that datasets dominated by low-confidence calls, such as those for rare modifications like pseudouridine, will be assigned an insufficiently stringent threshold, resulting in elevated false discovery rates. We show in our paper (referenced below) that modification-calling accuracy is highly sensitive to threshold choice and that the default thresholds selected by modkit are often suboptimal. There is no quantitative framework to select thresholds that optimise the precision-sensitivity trade-off. 
+By default, modkit filters out dorado's low-confidence modification calls using a heuristic to estimate the confidence threshold. The heuristic is not based on prediction accuracy, so datasets dominated by low-confidence calls, such as those for rare modifications like pseudouridine, get assigned insufficiently stringent thresholds, resulting in elevated false discovery rates, while datasets dominated by high-confidence calls are filtered too stringently, excluding true sites.
+
+We show in our manuscript (referenced below) that the default modkit performance is frequently suboptimal, producing incorrect results, and that running modkit with systematically identified optimal thresholds rescues modkit performance and substantially improves modification-calling accuracy.
 
 ### How ModkitOpt works
 
-ModkitOpt takes as input a modBAM file containing dorado per-read modification calls, efficiently and systematically scans a comprehensive range of candidate modkit thresholds (`--filter-threshold` and `--mod-threshold`), and evaluates the resulting modkit calls against a reference set of known modification sites to quantify precision and recall. ModkitOpt identifies the optimal threshold combination, and corresponding stoichiometry cutoff, that optimise the precision-recall trade-off.
+ModkitOpt takes as input a modBAM file containing dorado per-read modification calls, efficiently and systematically scans 36,000 combinations of modkit thresholds (`--filter-threshold` and `--mod-threshold`) and downstream stoichiometry cutoffs, and evaluates predicted sites against validated reference sites to quantify precision and recall. ModkitOpt identifies the optimal threshold combination, and corresponding stoichiometry cutoff, that maximises the F1 score ($2*precision*recall/(precision+recall)$).
 
-Reference sets of known modification sites are supplied for mammalian N6-methyladenosine (m6A) and pseudouridine (pseU), which we show can be used for mammalian nanopore datasets from any biological context. For other modification types, a reference set needs to be supplied by the user.
+Validated reference sites are supplied for mammalian N6-methyladenosine (m6A) and pseudouridine (pseU), which can be used for nanopore datasets that originate from a different biological sample, provided a subset of sites are shared with the reference. For other modification types, a reference set can be supplied by the user.
 
 <p align="center">
   <img src="design.png" width="1000">
@@ -20,7 +22,7 @@ Reference sets of known modification sites are supplied for mammalian N6-methyla
 
 If you use this software, please cite:
 
-> Ref TBD
+> Sneddon, Prodic & Eyras. (2025). *ModkitOpt: Systematic optimisation of modkit parameters for accurate nanopore-based RNA modification detection*. bioRxiv preprint. DOI: 10.64898/2025.12.19.695383
 
 # Quick start
 
@@ -82,6 +84,16 @@ The **modkit** binary that you downloaded and extracted in [Quick start](#quick-
 
 Before running ModkitOpt inside a job, first run it on a login node (or a node where internet is available) so that Nextflow can create the conda environment. Once the conda environment is created and the Nextflow pipeline starts executing, you can kill the pipeline and then proceed with submitting your ModkitOpt job.
 
+### Tested HPC environments
+
+We have only tested ModkitOpt in a `pbspro` environment (NCI's [gadi](https://nci.org.au/our-systems/hpc-systems)). 
+
+Your specific HPC system may use different Nextflow directives, these can be updated in `modkitopt/profiles/pbspro.config`.
+
+While we have written profiles for `pbs` and `slurm`, these have not been tested. We welcome contributions from the community to improve these profiles, which can be found in `modkitopt/profiles/`.
+
+**If you aren't familiar with your system's expected Nextflow directives, you can also [run ModkitOpt using `-profile local`](###nextflow-crashing?-try-running-with-local-profile).**
+
 ### Specifying your HPC environment details
 
 When running in an HPC environment, you need to specify these things:
@@ -89,8 +101,6 @@ When running in an HPC environment, you need to specify these things:
 **1. Your HPC environment profile**
 
 This tells Nextflow what type of workload manager it is dealing with. We currently support PBS, PBS Pro and Slurm systems. Specify this with the `-profile` flag, such as `-profile pbs`, `-profile pbspro` or `-profile slurm`. For NCI's gadi use `-profile pbspro`. Nextflow automatically handles creating and submitting jobs in each of these environments.
-
-*Note:* We have only tested ModkitOpt in a `pbspro` environment (NCI's [gadi](https://nci.org.au/our-systems/hpc-systems)). Your specific HPC system may use different Nextflow directives, these can be updated in `modkitopt/profiles/pbspro.config`. While we have written profiles for `pbs` and `slurm`, these have not been tested. We welcome contributions from the community to improve these profiles, which can be found in `modkitopt/profiles/`. 
 
 **2. Your HPC queue name**
 
@@ -127,6 +137,25 @@ nextflow run main.nf                                           \
   --hpc_storage     gdata/ab12
 ```
 
+### Nextflow crashing? Try running with local profile
+
+If you aren't familiar with your system's expected Nextflow directives, or Nextflow is having trouble creating jobs, you can also run ModkitOpt using `-profile local` in a job script. 
+
+Using the local profile means that Nextflow won't spawn jobs to run processes in parallel, so it may take a little longer to run but will produce the same results. Using this approach, your job needs at least 8 CPUs, at least 30GB of RAM and at least 5GB of job filesystem disk space.
+
+```bash
+cd /path/to/modkitopt
+
+nextflow run main.nf                                          \
+  --modbam           ./resources/example.bam                  \
+  --mod_type         m6A                                      \
+  --modkit           /path/to/modkit                          \
+  --fasta            /path/to/gencode.v45.transcripts.fa      \
+  --annotation       /path/to/gencode.v45.annotation.gff3     \
+  -profile local
+```
+
+
 ### Resuming an interrupted run
 
 If your run gets interrupted, Nextflow automatically supports checkpointing and resuming runs. Simply add `-resume` to the Nextflow command that didn't complete and run again!
@@ -146,31 +175,6 @@ nextflow run main.nf                                           \
   --hpc_storage     gdata/ab12                                 \
   -resume
 ```
-
-### Estimated run-time
-
-We tested the execution time of ModkitOpt on an HPC system (NCI's [gadi](https://nci.org.au/our-systems/hpc-systems)) with a PBSPro scheduler and the default resource settings:
-
-* 8 CPUs & 8GB RAM for samtools filter and samtools sort
-* 8 CPUs & 30GB RAM for modkit pileup
-* 4 CPUs & 8GB RAM for samtools index
-* 1 CPU, 30GB RAM and 5GB job filesystem disk space for converting transcriptomic to genomic coordinates
-* 1 CPU with 8GB RAM for all other tasks
-
-| modBAM file size  | Mod type | Cell line | Execution time |
-| ----------------- | -------- | --------- | -------------- |
-| 7.4GB             | pseU     | HeLa      | 22 mins        |
-| 10.8GB            | pseU     | HepG2     | 27 mins        |
-| 12.4GB            | pseU     | K562      | 30 mins        |
-| 13.1GB            | m6A      | HepG2     | 29 mins        |
-| 13.8GB            | m6A      | K562      | 31 mins        |
-| 21GB              | m6A      | HEK293T   | 33 mins        |
-
-### Advanced use: Overriding the default Nextflow parameters
-
-The default Nextflow parameters, contained in `nextflow.config` and `profiles/` can be overridden on the command-line.
-
-For example, to increase the number of CPUs used for modkit pileup, you simply add `--pileup_cpus 16` to your Nextflow command.
 
 # Command details
 
@@ -202,11 +206,38 @@ Optional arguments:
   --truth_sites        .tsv file containing known modification sites (genomic 1-based coordinates, expected columns 1 and 2: [chr, pos], mandatory if mod_type is m5C or inosine)
 ```
 
+# Estimated run-time
+
+We tested the execution time of ModkitOpt on an HPC system (NCI's [gadi](https://nci.org.au/our-systems/hpc-systems)) with a PBSPro scheduler and the default resource settings:
+
+* 8 CPUs & 8GB RAM for samtools filter and samtools sort
+* 8 CPUs & 30GB RAM for modkit pileup
+* 4 CPUs & 8GB RAM for samtools index
+* 1 CPU, 30GB RAM and 5GB job filesystem disk space for converting transcriptomic to genomic coordinates
+* 1 CPU with 8GB RAM for all other tasks
+
+| modBAM file size  | Mod type | Cell line | Execution time |
+| ----------------- | -------- | --------- | -------------- |
+| 7.4GB             | pseU     | HeLa      | 22 mins        |
+| 10.8GB            | pseU     | HepG2     | 27 mins        |
+| 12.4GB            | pseU     | K562      | 30 mins        |
+| 13.1GB            | m6A      | HepG2     | 29 mins        |
+| 13.8GB            | m6A      | K562      | 31 mins        |
+| 21GB              | m6A      | HEK293T   | 33 mins        |
+
 # Tested environments and software versions
 
 The following configurations have been tested:
 
-| Execution environment | Modkit version |
-| --------------------- | -------------- |
-| pbspro (NCI's gadi)   | v0.6.0         |
-| local                 | v0.6.0         |
+| Execution environment | Modkit version | Nextflow version |
+| --------------------- | -------------- | ---------------- |
+| pbspro (NCI's gadi)   | v0.6.0         | 24.04.5          |
+| local                 | v0.6.0         | 25.10.0          |
+
+# Advanced use
+
+## Overriding the default Nextflow parameters
+
+The default Nextflow parameters, contained in `nextflow.config` and `profiles/` can be overridden on the command-line.
+
+For example, to increase the number of CPUs used for modkit pileup, you simply add `--pileup_cpus 16` to your Nextflow command.
