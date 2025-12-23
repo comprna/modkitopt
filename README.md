@@ -92,7 +92,7 @@ Your specific HPC system may use different Nextflow directives, these can be upd
 
 While we have written profiles for `pbs` and `slurm`, these have not been tested. We welcome contributions from the community to improve these profiles, which can be found in `modkitopt/profiles/`.
 
-**If you aren't familiar with your system's expected Nextflow directives, you can also [run ModkitOpt using `-profile local`](###nextflow-crashing?-try-running-with-local-profile).**
+**If you aren't familiar with your system's expected Nextflow directives, you can also [run ModkitOpt using `-profile local`](#nextflow-crashing-try-running-with-local-profile).**
 
 ### Specifying your HPC environment details
 
