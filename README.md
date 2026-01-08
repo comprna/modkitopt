@@ -49,7 +49,7 @@ git clone https://github.com/comprna/modkitopt.git
 
 ### Install conda environment
 
-Note: Internet is required to install packages, so if running this in an HPC environment make sure you run on a node with internet access.
+Note that this may take a few minutes. Also, internet is required to install packages, so if running this in an HPC environment make sure you run on a node with internet access.
 
 ```bash
 cd /path/to/modkitopt
