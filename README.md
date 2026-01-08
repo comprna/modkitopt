@@ -10,7 +10,7 @@ By default, modkit uses a heuristic and unvalidated algorithm for quantifying RN
 
 ModkitOpt takes as input a modBAM file containing dorado per-read modification calls, efficiently and systematically scans 36,000 combinations of modkit thresholds (`--filter-threshold` and `--mod-threshold`) and downstream stoichiometry cutoffs, and evaluates predicted sites against validated reference sites to quantify precision and recall. ModkitOpt identifies the optimal threshold combination, and corresponding stoichiometry cutoff, that maximises the F1 score ( $2 \cdot precision \cdot recall/(precision+recall)$ ).
 
-Validated reference sites are supplied for mammalian N6-methyladenosine (m6A) and pseudouridine (pseU), which can be used for nanopore datasets that originate from a different biological sample, provided a subset of sites are shared with the reference. For other modification types, a reference set can be supplied by the user.
+Validated reference sites are supplied for mammalian N6-methyladenosine (m6A) and pseudouridine (pseU), which can be used for nanopore datasets that originate from a different biological sample, provided a subset of validated sites are shared. For other modification types, validated sites can be supplied by the user.
 
 <p align="center">
   <img src="images/design.png" width="1000">
@@ -78,7 +78,7 @@ Briefly, the required input files are:
 
 See [Command details](#command-details) for more information.
 
-See [guidance below](#specifying-your-hpc-environment-details) on how to specify your HPC environment details.
+See below for [how to specify your HPC environment details](#specifying-your-hpc-environment-details).
 
 ```bash
 nextflow run main.nf                                           \
@@ -109,7 +109,7 @@ Your specific HPC system may use different Nextflow directives, these can be upd
 
 While we have written profiles for `pbs` and `slurm`, these have not been tested. We welcome contributions from the community to improve these profiles, which can be found in `modkitopt/profiles/`.
 
-**If you aren't familiar with your system's expected Nextflow directives, you can also [run ModkitOpt using `-profile local`](#nextflow-crashing-try-running-with-local-profile).**
+**If you aren't familiar with your system's expected Nextflow directives, you can also [run ModkitOpt using `-profile local`](#nextflow-not-working-try-running-with-local-profile).**
 
 ### Specifying your HPC environment details
 
@@ -224,7 +224,7 @@ Mandatory arguments if running on an HPC system (-profile is pbs, pbspro or slur
   --help               This usage statement
 
 Optional arguments:
-  --truth_sites        .tsv file containing known modification sites (genomic 1-based coordinates, expected columns 1 and 2: [chr, pos], mandatory if mod_type is m5C or inosine)
+  --truth_sites        .tsv file containing validated modification sites (genomic 1-based coordinates, expected columns 1 and 2: [chr, pos], mandatory if mod_type is m5C or inosine)
 ```
 
 # Output details
@@ -252,34 +252,7 @@ E.g.:
   <img src="images/barplot.png" width="1000">
 </p>
 
-3. [ADVANCED USE] A plot showing the F1 scores across the threshold space is written to `results/5_compare_params/ADVANCED_scatterplot.tsv`
-
-E.g.:
-
-<p align="left">
-  <img src="images/scatterplot.png" width="700">
-</p>
-
-4. [ADVANCED USE] A plot showing the precision-recall curves for every tested threshold combination is written to `results/5_compare_params/ADVANCED_pr_curves.tsv`
-
-E.g.:
-
-<p align="left">
-  <img src="images/pr_curves.png" width="700">
-</p>
-
-5. [ADVANCED USE] A tsv file with F1 score, precision and recall for each threshold combination (with the corresponding optimal stoichiometry cutoff per threshold combination) is written to `results/5_compare_params/ADVANCED_best_f1_scores.tsv`
-
-E.g.:
-
-| params | threshold | precision | recall | f1 |
-| ------ | --------- | --------- | ------ | -- |
-| f: 0.5, m: 0.99  |	0.078 |	0.651 |	0.352 |	0.45693320039880353 |
-| f: 0.75, m: 0.99 |	0.085 |	0.66  |	0.344 |	0.4522709163346613  |
-| f: 0.5, m: 0.95  |	0.102 |	0.628 |	0.35  |	0.4494887525562372  |
-| f: 0.9, m: 0.99  |	0.09  |	0.658 |	0.339 |	0.4474663991975928  |
-| f: 0.95, m: 0.99 |	0.092 |	0.652 |	0.337 |	0.4443356926188069  |
-
+See below for [Advanced outputs](#advanced-outputs)
 
 # Estimated run-time
 
@@ -304,7 +277,7 @@ We tested the execution time of ModkitOpt on an HPC system (NCI's [gadi](https:/
 
 The following configurations have been tested:
 
-| Execution environment | Modkit version | Nextflow version |
+| Nextflow profile | Modkit version | Nextflow version |
 | --------------------- | -------------- | ---------------- |
 | pbspro (NCI's gadi)   | v0.6.0         | 24.04.5          |
 | local                 | v0.6.0         | 25.10.0          |
@@ -336,3 +309,34 @@ nextflow run main.nf                                           \
   ...
 ```
 
+## Advanced outputs
+
+For users who would like more detailed outputs, ModkitOpt also provides:
+
+1. A plot showing the F1 scores across the threshold space is written to `results/5_compare_params/ADVANCED_scatterplot.tsv`
+
+E.g.:
+
+<p align="left">
+  <img src="images/scatterplot.png" width="350">
+</p>
+
+2. A plot showing the precision-recall curves for every tested threshold combination is written to `results/5_compare_params/ADVANCED_pr_curves.tsv`
+
+E.g.:
+
+<p align="left">
+  <img src="images/pr_curves.png" width="500">
+</p>
+
+3. A tsv file with F1 score, precision and recall for each threshold combination (with the corresponding optimal stoichiometry cutoff per threshold combination) is written to `results/5_compare_params/ADVANCED_best_f1_scores.tsv`
+
+E.g.:
+
+| params | threshold | precision | recall | f1 |
+| ------ | --------- | --------- | ------ | -- |
+| f: 0.5, m: 0.99  |	0.078 |	0.651 |	0.352 |	0.45693320039880353 |
+| f: 0.75, m: 0.99 |	0.085 |	0.66  |	0.344 |	0.4522709163346613  |
+| f: 0.5, m: 0.95  |	0.102 |	0.628 |	0.35  |	0.4494887525562372  |
+| f: 0.9, m: 0.99  |	0.09  |	0.658 |	0.339 |	0.4474663991975928  |
+| f: 0.95, m: 0.99 |	0.092 |	0.652 |	0.337 |	0.4443356926188069  |
