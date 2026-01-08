@@ -1,12 +1,10 @@
 # ModkitOpt
 
-ModkitOpt finds the best `--mod-threshold` and `--filter-threshold` parameters to use when running `modkit pileup`, and the best stoichiometry cutoff for filtering modkit's bedMethyl output, to maximise the precision and recall of your nanopore direct RNA modification calls.
+ModkitOpt finds the best `--mod-threshold` and `--filter-threshold` parameters to use when running `modkit pileup`, and the best stoichiometry cutoff for filtering modkit's bedMethyl output, to maximise the precision and recall of nanopore direct RNA modification calls.
 
 ### Why use ModkitOpt?
 
-By default, modkit filters out dorado's low-confidence modification calls using a heuristic to estimate the confidence threshold. The heuristic is not based on prediction accuracy, so datasets dominated by low-confidence calls, such as those for rare modifications like pseudouridine, get assigned insufficiently stringent thresholds, resulting in elevated false discovery rates, while datasets dominated by high-confidence calls are filtered too stringently, excluding true sites.
-
-We show in our manuscript (referenced below) that the default modkit performance is frequently suboptimal, producing incorrect results, and that running modkit with systematically identified optimal thresholds rescues modkit performance and substantially improves modification-calling accuracy.
+By default, modkit uses a heuristic and unvalidated algorithm for quantifying RNA modifications, which can mislead reporting of RNA modification landscapes. ModkitOpt identifies optimised settings (`--mod-threshold`, `--filter-threshold` and stoichiometry cutoff) that rescue modkit performance, substantially increasing the acccuracy of RNA modification landscapes. Further details about modkit's default heuristic and ModkitOpt can be found in our paper, cited below.
 
 ### How ModkitOpt works
 
@@ -15,105 +13,61 @@ ModkitOpt takes as input a modBAM file containing dorado per-read modification c
 Validated reference sites are supplied for mammalian N6-methyladenosine (m6A) and pseudouridine (pseU), which can be used for nanopore datasets that originate from a different biological sample, provided a subset of sites are shared with the reference. For other modification types, a reference set can be supplied by the user.
 
 <p align="center">
-  <img src="design.png" width="1000">
+  <img src="images/design.png" width="1000">
 </p>
 
 # Citation
 
 If you use this software, please cite:
 
-> Sneddon, Prodic & Eyras. (2025). *ModkitOpt: Systematic optimisation of modkit parameters for accurate nanopore-based RNA modification detection*. bioRxiv preprint. DOI: 10.64898/2025.12.19.695383
+> Sneddon, Prodic & Eyras. (2025). *Resolving systematic bias in nanopore-based RNA modification detection*. bioRxiv preprint. DOI: 10.64898/2025.12.19.695383
 
 # Quick start
 
-To run locally using the example modBAM file we provide in `modkitopt/resources`, simply:
-
-**1. Clone the repository**
+## Step 1: Clone the repository
 
 ```
 git clone https://github.com/comprna/modkitopt.git
 ```
 
-**2. Install dependencies**
+## Step 2: Install dependencies
+
+### Download modkit
 
 * **modkit** >= v0.6.0
 
   * Download modkit_vXYZ.tar.gz from the [modkit release page](https://github.com/nanoporetech/modkit/releases)
-  * Extract the archive contents
+  * Extract the archive contents to your preferred location
     ```
     tar -xvzf modkit_vXYZ.tar.gz
     ```
+
+### Install conda & nextflow
+
 * **conda** ([Miniconda installation guide](https://www.anaconda.com/docs/getting-started/miniconda/install))
 * **nextflow** ([installation guide](https://www.nextflow.io/docs/latest/install.html))
 
-Nextflow will automatically install all other dependencies using conda (environment defined in `modkitopt/env.yaml`) the first time that modkitopt is run.
+### Install conda environment
 
-**3. Run ModkitOpt**
-
-Run ModkitOpt on an example modBAM file containing m6A calls aligned to the human reference transcriptome (GRCh38.p14, release 45). To run this example, you need to use the same GENCODE human reference transcriptome and corresponding annotation ([GRCh38.p14, release 45](https://www.gencodegenes.org/human/release_45.html)) that was used to create the modBAM file.
-
-**Important note:** This example demonstrates how the Nextflow pipeline operates, but the modBAM file is too small for ModkitOpt to provide a meaningful output.
+Note: Internet is required to install packages, so if running this in an HPC environment make sure you run on a node with internet access.
 
 ```bash
 cd /path/to/modkitopt
 
-nextflow run main.nf                                          \
-  --modbam           ./resources/example.bam                  \
-  --mod_type         m6A                                      \
-  --modkit           /path/to/modkit                          \
-  --fasta            /path/to/gencode.v45.transcripts.fa      \
-  --annotation       /path/to/gencode.v45.annotation.gff3     \
-  -profile local
+nextflow run main.nf --install
 ```
 
-*Note:* The first time that you run ModkitOpt, Nextflow will create a conda environment and install dependencies - be patient, this will take a few minutes.
+## Step 3: Run ModkitOpt demo
 
-# Running in HPC environments
+The demo runs on a small example modBAM file and should complete in <5 mins.
 
-**We recommend running ModkitOpt in an HPC environment**, since modkit is called several times with different thresholds. Nextflow handles submitting modkit jobs so that they can run at the same time, reducing the overall execution time of ModkitOpt.
+```bash
+cd /path/to/modkitopt
 
-## Dependencies
+nextflow run main.nf --demo --modkit /path/to/modkit
+```
 
-The **modkit** binary that you downloaded and extracted in [Quick start](#quick-start) can simply be copied to your HPC storage location.
-
-**Nextflow** and **conda** are often already provided in HPC environments as modules that can simply be loaded. If not, they need to be installed following the guidelines for your system.
-
-## Running ModkitOpt
-
-### The first time you run ModkitOpt in an HPC environment
-
-Before running ModkitOpt inside a job, first run it on a login node (or a node where internet is available) so that Nextflow can create the conda environment. Once the conda environment is created and the Nextflow pipeline starts executing, you can kill the pipeline and then proceed with submitting your ModkitOpt job.
-
-### Tested HPC environments
-
-We have only tested ModkitOpt in a `pbspro` environment (NCI's [gadi](https://nci.org.au/our-systems/hpc-systems)). 
-
-Your specific HPC system may use different Nextflow directives, these can be updated in `modkitopt/profiles/pbspro.config`.
-
-While we have written profiles for `pbs` and `slurm`, these have not been tested. We welcome contributions from the community to improve these profiles, which can be found in `modkitopt/profiles/`.
-
-**If you aren't familiar with your system's expected Nextflow directives, you can also [run ModkitOpt using `-profile local`](#nextflow-crashing-try-running-with-local-profile).**
-
-### Specifying your HPC environment details
-
-When running in an HPC environment, you need to specify these things:
-
-**1. Your HPC environment profile**
-
-This tells Nextflow what type of workload manager it is dealing with. We currently support PBS, PBS Pro and Slurm systems. Specify this with the `-profile` flag, such as `-profile pbs`, `-profile pbspro` or `-profile slurm`. For NCI's gadi use `-profile pbspro`. Nextflow automatically handles creating and submitting jobs in each of these environments.
-
-**2. Your HPC queue name**
-
-You must specify the queue that Nextflow can schedule jobs to using the `--hpc_queue` flag, such as `--hpc_queue normal`. Since Nextflow only requires CPUs to execute, and up to 30GB memory for some of the tasks, the standard queue should suffice.
-
-**3. Your HPC project code**
-
-You must specify the HPC project code that Nextflow can schedule jobs to using the `--hpc_project` flag, such as `--hpc_project ab12`.
-
-**4. Your HPC storage location**
-
-You must specify your HPC storage location using the `--hpc_storage` flag. This should list all storage locations for your input files, conda environment, and the modkit repo, 
- such as `--hpc_storage gdata/ab12+gdata/cd34+scratch/ab12`.
+## Step 4: Run ModkitOpt on your own dataset
 
 ### Command example
 
@@ -123,6 +77,8 @@ Briefly, the required input files are:
 3. TSV file containing ground truth sites (optional if your nanopore dataset is mammalian and your modification type is m6A or pseU)
 
 See [Command details](#command-details) for more information.
+
+See [guidance below](#specifying-your-hpc-environment-details) on how to specify your HPC environment details.
 
 ```bash
 nextflow run main.nf                                           \
@@ -137,9 +93,75 @@ nextflow run main.nf                                           \
   --hpc_storage     gdata/ab12
 ```
 
-### Nextflow crashing? Try running with local profile
+### Recommended: Run in an HPC environment
 
-If you aren't familiar with your system's expected Nextflow directives, or Nextflow is having trouble creating jobs, you can also run ModkitOpt using `-profile local` in a job script. 
+Nextflow handles spawning jobs to split up the workflow, to significantly speed up execution time. If you don't have access to an HPC cluster, then you need to use a computer with at least 30GB RAM and at least 8 CPUs.
+
+### Resources to request
+
+Since Nextflow handles job creation and resource allocation for running the workflow, you only need to create one top-level job script containing the ModkitOpt command. The top-level job only requires 1 CPU and 4GB RAM.
+
+### Tested HPC environments
+
+We have so far tested ModkitOpt in a `pbspro` environment (NCI's [gadi](https://nci.org.au/our-systems/hpc-systems)). 
+
+Your specific HPC system may use different Nextflow directives, these can be updated in `modkitopt/profiles/pbspro.config`.
+
+While we have written profiles for `pbs` and `slurm`, these have not been tested. We welcome contributions from the community to improve these profiles, which can be found in `modkitopt/profiles/`.
+
+**If you aren't familiar with your system's expected Nextflow directives, you can also [run ModkitOpt using `-profile local`](#nextflow-crashing-try-running-with-local-profile).**
+
+### Specifying your HPC environment details
+
+When running in an HPC environment, you need to specify:
+
+**1. Your HPC environment profile**
+
+This tells Nextflow what type of workload manager it is dealing with, allowing Nextflow to automatically handle creating and submitting jobs.
+
+```bash
+nextflow run main.nf                                           \
+  ...
+  -profile pbspro                                              \
+  ...
+```
+
+**2. Your HPC queue name**
+
+You must specify the queue that Nextflow can schedule jobs to. Since ModkitOpt only uses CPUs, and up to 30GB memory for some of the tasks, the standard queue should suffice. 
+
+```bash
+nextflow run main.nf                                           \
+  ...
+  --hpc_queue       normal                                     \
+  ...
+```
+
+**3. Your HPC project code**
+
+You must specify the HPC project code that Nextflow can schedule jobs to.
+
+```bash
+nextflow run main.nf                                           \
+  ...
+  --hpc_project     ab12                                       \
+  ...
+```
+
+**4. Your HPC storage location**
+
+You must specify your HPC storage location(s) that ModkitOpt will use. This includes all storage locations for your input files, conda environment, and the modkit repo.
+
+```bash
+nextflow run main.nf                                           \
+  ...                                    
+  --hpc_storage     gdata/ab12+gdata/cd34+scratch/ab12         \
+  ...
+```
+
+### Nextflow not working? Try running with local profile
+
+If you aren't familiar with your system's expected Nextflow directives, or Nextflow is having trouble creating jobs, you can also run ModkitOpt using `-profile local`.
 
 Using the local profile means that Nextflow won't spawn jobs to run processes in parallel, so it may take a little longer to run but will produce the same results. Using this approach, your job needs at least 8 CPUs, at least 30GB of RAM and at least 5GB of job filesystem disk space.
 
@@ -154,7 +176,6 @@ nextflow run main.nf                                          \
   --annotation       /path/to/gencode.v45.annotation.gff3     \
   -profile local
 ```
-
 
 ### Resuming an interrupted run
 
@@ -206,9 +227,63 @@ Optional arguments:
   --truth_sites        .tsv file containing known modification sites (genomic 1-based coordinates, expected columns 1 and 2: [chr, pos], mandatory if mod_type is m5C or inosine)
 ```
 
+# Output details
+
+1. The optimal --filter_threshold, --mod_threshold and stoichiometry cutoff to use are written to standard out:
+
+```bash
+The optimal modkit pileup parameters are:
+
+ >>> filter_threshold:  0.5
+ >>> mod_threshold:     0.99
+
+ With the optimal stoichiometry cutoff to classify modified sites:
+
+ >>> Threshold: 0.086
+
+ Achieving an F1 score of 0.008
+```
+
+2. A bar plot showing performance across the parameter space is written to `results/5_compare_params/barplot.png`
+
+E.g.:
+
+<p align="left">
+  <img src="images/barplot.png" width="1000">
+</p>
+
+3. [ADVANCED USE] A plot showing the F1 scores across the threshold space is written to `results/5_compare_params/ADVANCED_scatterplot.tsv`
+
+E.g.:
+
+<p align="left">
+  <img src="images/scatterplot.png" width="700">
+</p>
+
+4. [ADVANCED USE] A plot showing the precision-recall curves for every tested threshold combination is written to `results/5_compare_params/ADVANCED_pr_curves.tsv`
+
+E.g.:
+
+<p align="left">
+  <img src="images/pr_curves.png" width="700">
+</p>
+
+5. [ADVANCED USE] A tsv file with F1 score, precision and recall for each threshold combination (with the corresponding optimal stoichiometry cutoff per threshold combination) is written to `results/5_compare_params/ADVANCED_best_f1_scores.tsv`
+
+E.g.:
+
+| params | threshold | precision | recall | f1 |
+| ------ | --------- | --------- | ------ | -- |
+| f: 0.5, m: 0.99  |	0.078 |	0.651 |	0.352 |	0.45693320039880353 |
+| f: 0.75, m: 0.99 |	0.085 |	0.66  |	0.344 |	0.4522709163346613  |
+| f: 0.5, m: 0.95  |	0.102 |	0.628 |	0.35  |	0.4494887525562372  |
+| f: 0.9, m: 0.99  |	0.09  |	0.658 |	0.339 |	0.4474663991975928  |
+| f: 0.95, m: 0.99 |	0.092 |	0.652 |	0.337 |	0.4443356926188069  |
+
+
 # Estimated run-time
 
-We tested the execution time of ModkitOpt on an HPC system (NCI's [gadi](https://nci.org.au/our-systems/hpc-systems)) with a PBSPro scheduler and the default resource settings:
+We tested the execution time of ModkitOpt on an HPC system (NCI's [gadi](https://nci.org.au/our-systems/hpc-systems)) with a PBSPro scheduler, with ModkitOpt's default resource settings:
 
 * 8 CPUs & 8GB RAM for samtools filter and samtools sort
 * 8 CPUs & 30GB RAM for modkit pileup
@@ -238,6 +313,26 @@ The following configurations have been tested:
 
 ## Overriding the default Nextflow parameters
 
-The default Nextflow parameters, contained in `nextflow.config` and `profiles/` can be overridden on the command-line.
+The default Nextflow parameters are contained in `nextflow.config` and `profiles/`, and can be overridden on the command-line (or changed directly in nextflow.config).
 
-For example, to increase the number of CPUs used for modkit pileup, you simply add `--pileup_cpus 16` to your Nextflow command.
+Examples:
+
+1. To increase the number of CPUs used for modkit pileup:
+
+```bash
+nextflow run main.nf                                           \
+  ...                                    
+  --pileup_cpus 16                                             \
+  ...
+```
+
+2. To change the --filter-threshold and --mod-threshold values to test:
+
+```bash
+nextflow run main.nf                                           \
+  ...                                    
+  --mod_thresholds '[0.99, 0.995, 0.999]'                      \
+  --filter_thresholds '[0.99, 0.995, 0.999]'                   \
+  ...
+```
+
