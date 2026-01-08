@@ -185,15 +185,7 @@ For example:
 
 ```bash
 nextflow run main.nf                                           \
-  --modbam          /path/to/modbam.bam                        \
-  --mod_type        m6A                                        \
-  --modkit          /path/to/modkit                            \
-  --fasta           /path/to/ref.fa                            \
-  --annotation      /path/to/annotation.gff3                   \
-  -profile          pbspro                                     \
-  --hpc_queue       normal                                     \
-  --hpc_project     ab12                                       \
-  --hpc_storage     gdata/ab12                                 \
+  ...
   -resume
 ```
 
@@ -207,7 +199,6 @@ nextflow run main.nf --modbam sample.bam
                      --modkit /path/to/modkit
                      --fasta /path/to/transcriptome.fa
                      --annotation /path/to/annotation.gff3
-                     -profile <local|pbs|pbspro|slurm>
 
 Mandatory arguments:
     --modbam             .bam file containing per-read modification calls
@@ -215,7 +206,6 @@ Mandatory arguments:
     --modkit             Path to modkit executable
     --fasta              Path to reference transcriptome
     --annotation         Path to corresponding reference annotation (.gtf or .gff3)
-    -profile             Execution environment (options: local, pbs, pbspro, slurm)
 
 Mandatory arguments if running on an HPC system (-profile is pbs, pbspro or slurm):
     --hpc_queue          Name of the queue that Nextflow can schedule jobs to (e.g., 'normal')
