@@ -48,6 +48,7 @@ ds_to_plot <- map_dfr(ds_list, bind_rows)
 ################################################################################
 
 ds_to_plot %>%
+  filter(params != "default, default") %>%
   group_by(params) %>%
   slice_max(f1, n = 1, with_ties = FALSE) %>%
   ungroup() %>%
@@ -62,6 +63,7 @@ f1_to_plot <- best_f1 %>% filter(f1 == max(f1))
 theme_set(theme_classic())
 n_colours <- length(unique(ds_to_plot$params))
 ds_to_plot %>%
+  filter(params != "default, default") %>%
   ggplot(aes(x = recall, y = precision, colour = params)) +
     geom_line() +
     geom_point(data = best_f1, size = 3) +
@@ -123,15 +125,40 @@ ggsave(out_barplot, height = 8, width = 14)
 ################################################################################
 
 mk_purple_tyrian <- "#68023F"
+br_yellow <- "#fdb027"
 
 best_f1 %>%
+  filter(params != "default, default") %>%
   separate_wider_delim(params, delim = ", ", names = c("filter_threshold", "mod_threshold")) %>%
   mutate(filter_threshold = as.numeric(filter_threshold),
-         mod_threshold    = as.numeric(mod_threshold)) %>%
-  ggplot(aes(x = filter_threshold, y = mod_threshold, size = f1)) +
-    geom_point(colour = mk_purple_tyrian, alpha = 0.4) +
-    scale_size_continuous(range = c(2, 7)) +
-    theme(text = element_text(family = "Helvetica"))
+         mod_threshold    = as.numeric(mod_threshold)) ->
+to_plot_f1
+
+to_plot_f1_best <- to_plot_f1 %>% slice_max(f1)
+
+to_plot_f1 %>%
+  ggplot(aes(x = filter_threshold, y = mod_threshold, size = f1, fill = f1)) +
+    geom_point(shape = 21, colour = "black", stroke = 0.3) +
+    # Add a star on top of the best performing parameter combo
+    geom_point(data = to_plot_f1_best,
+               aes(x = filter_threshold, y = mod_threshold),
+               shape = 18,
+               colour = br_yellow,
+               fill = br_yellow,
+               size = 6,
+               stroke = 1,
+               show.legend = FALSE) +
+    scale_size_continuous(range = c(2, 10), guide = "none") +
+    scale_fill_gradient(low = "white", high = mk_purple_tyrian) +
+    scale_x_continuous(limits = c(0.4, 0.9959),
+                       breaks = c(0.5, 0.75, 0.9, 0.95, 0.99, 0.995),
+                       transform = "logit") +
+    scale_y_continuous(limits = c(0.4, 0.9959),
+                       breaks = c(0.5, 0.75, 0.9, 0.95, 0.99, 0.995),
+                       transform = "logit") +
+    guides(size = "legend", fill = "legend") +
+    theme(text = element_text(family = "Helvetica"),
+          axis.text.x = element_text(angle = 45, hjust = 1))
 
 ggsave(out_scatterplot, height = 4, width = 4)
 
