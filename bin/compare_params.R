@@ -182,7 +182,7 @@ if (length(best_params) > 1)
   output <- paste(output, "(in this case, more than one parameter set achieved the highest F1 score):\n\n")
   output <- paste(output, glue(">>> filter_threshold:\t{best_filter_threshold}\n\n"))
   output <- paste(output, glue(">>> mod_threshold:\t{best_mod_threshold}\n\n\n"))
-  output <- paste(output, glue("With the optimal stoichiometry threshold to filter sites:\n\n\n"))
+  output <- paste(output, glue("With the optimal stoichiometry cutoff to classify modified sites:\n\n\n"))
   output <- paste(output, glue(">>> Threshold: {best_threshold}\n\n\n"))
   output <- paste(output, glue("Achieving an F1 score of {round(best_f1_value, 3)}\n\n"))
 } else
@@ -190,7 +190,7 @@ if (length(best_params) > 1)
   output <- "\n\nThe optimal modkit pileup parameters are:\n\n"
   output <- paste(output, glue(">>> filter_threshold:\t{best_filter_threshold}\n\n"))
   output <- paste(output, glue(">>> mod_threshold:\t{best_mod_threshold}\n\n\n"))
-  output <- paste(output, glue("With the optimal stoichiometry threshold to filter sites:\n\n\n"))
+  output <- paste(output, glue("With the optimal stoichiometry cutoff to classify modified sites:\n\n\n"))
   output <- paste(output, glue(">>> Threshold: {best_threshold}\n\n\n"))
   output <- paste(output, glue("Achieving an F1 score of {round(best_f1_value, 3)}\n\n"))
 }
