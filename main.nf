@@ -66,6 +66,7 @@ workflow {
      *  Help message
      * =========================================================================
      */
+
     if (params.help) {
       helpMessage()
       return
@@ -76,9 +77,29 @@ workflow {
      *  Install mode
      * =========================================================================
      */
+
     if (params.install) {
         INSTALL_ENV(true)
         return
+    }
+
+    /*
+     * =========================================================================
+     *  Demo mode
+     * =========================================================================
+     */
+    
+    // Don't override params
+    if (params.demo) {
+        modbam = "./resources/demo/demo_m6A.bam"
+        mod_type = "m6A"
+        fasta = "./resources/demo/gencode.v45.transcripts.subset.fa"
+        annotation = "./resources/demo/gencode.v45.annotation.subset.gff3"
+    } else {
+        modbam = params.modbam
+        mod_type = params.mod_type
+        fasta = params.fasta
+        annotation = params.annotation
     }
 
     /*
@@ -87,39 +108,29 @@ workflow {
      * =========================================================================
      */
 
-    // Required arguments
-    if (!params.modbam) {
-        exit 1, "ERROR: Please provide --modbam (.bam file output by modification caller)"
-    }
-    if (!params.mod_type) {
-        exit 1, "ERROR: Please provide --mod_type (options: m6A, pseU, m5C, inosine)"
-    }
-    if (!params.modkit) {
-        exit 1, "ERROR: Please provide the path to modkit via --modkit"
-    }
-    if (!params.fasta) {
-        exit 1, "ERROR: Please provide the path to the reference transriptome via --fasta"
-    }
-    if (!params.annotation) {
-        exit 1, "ERROR: Please provide the path to the reference annotation (.gtf or .gff3) via --annotation"
+    if (!params.demo) {
+
+        // Required arguments
+        if (!params.modbam) {
+            exit 1, "Please provide --modbam (.bam file output by modification caller)"
+        }
+        if (!params.mod_type) {
+            exit 1, "Please provide --mod_type (options: m6A, pseU, m5C, inosine)"
+        }
+        if (!params.fasta) {
+            exit 1, "Please provide the path to the reference transriptome via --fasta"
+        }
+        if (!params.annotation) {
+            exit 1, "Please provide the path to the reference annotation (.gtf or .gff3) via --annotation"
+        }
     }
 
-    // HPC parameters must be specified if using pbs, pbspro or slurm
-    def hpcProfiles = ['pbs','pbspro','slurm']
-    if (workflow.profile in hpcProfiles) {
-        if (!params.hpc_project) {
-            exit 1, "ERROR: --hpc_project must be specified when using profile '${workflow.profile}'."
-        }
-        if (!params.hpc_storage) {
-            exit 1, "ERROR: --hpc_storage must be specified when using profile '${workflow.profile}'."
-        }
-        if (!params.hpc_queue) {
-            exit 1, "ERROR: --hpc_queue must be specified when using profile '${workflow.profile}'."
-        }
+    if (!params.modkit) {
+        exit 1, "Please provide the path to modkit via --modkit"
     }
 
     // Validate modification type
-    assert params.mod_type in ['m6A','pseU','m5C','inosine'], \
+    assert mod_type in ['m6A','pseU','m5C','inosine'], \
         "Modification type not recognised, choose from: m6A, pseU, m5C, inosine"
 
     // Validate ground truth
@@ -127,14 +138,14 @@ workflow {
     if (!params.truth_sites) {
 
         // If no ground truth sites provided for m6A, then use supplied default
-        if (params.mod_type == "m6A") {
+        if (mod_type == "m6A") {
             truth_sites = "./resources/m6A_validated.tsv"
-            log.warn "No --truth_sites supplied for --mod_type m6A; using default '${truth_sites}'"
+            log.info "No --truth_sites supplied for --mod_type m6A; using default '${truth_sites}'"
 
         // If no ground truth sites provided for pseU, then use supplied default
-        } else if (params.mod_type == "pseU") {
+        } else if (mod_type == "pseU") {
             truth_sites = "./resources/pseU_validated.tsv"
-            log.warn "No --truth_sites supplied for --mod_type pseU; using default '${truth_sites}'"
+            log.info "No --truth_sites supplied for --mod_type pseU; using default '${truth_sites}'"
 
         // Ground truth sites must be provided for mods other than m6A or pseU
         } else {
@@ -145,13 +156,27 @@ workflow {
         truth_sites = params.truth_sites
     }
 
+    // HPC parameters must be specified if using pbs, pbspro or slurm
+    def hpcProfiles = ['pbs','pbspro','slurm']
+    if (workflow.profile in hpcProfiles) {
+        if (!params.hpc_project) {
+            exit 1, "--hpc_project must be specified when using profile '${workflow.profile}'."
+        }
+        if (!params.hpc_storage) {
+            exit 1, "--hpc_storage must be specified when using profile '${workflow.profile}'."
+        }
+        if (!params.hpc_queue) {
+            exit 1, "--hpc_queue must be specified when using profile '${workflow.profile}'."
+        }
+    }
+
     /*
      * =========================================================================
      *  Filter, sort and index BAM
      * =========================================================================
      */
 
-    ch_modbam = channel.fromPath(params.modbam, checkIfExists: true)
+    ch_modbam = channel.fromPath(modbam, checkIfExists: true)
     ch_filtered_bam = SAMTOOLS_FILTER(ch_modbam)
     ch_sorted_bam = SAMTOOLS_SORT(ch_filtered_bam)
     ch_indexed_bam = SAMTOOLS_INDEX(ch_sorted_bam)
@@ -169,7 +194,7 @@ workflow {
                               .mix(Channel.value(["default", "default"]))
 
     // Create a channel for the reference fasta file
-    ch_fasta = channel.fromPath(params.fasta, checkIfExists: true)
+    ch_fasta = channel.fromPath(fasta, checkIfExists: true)
 
     // Combine the BAM and BAM index into a single channel
     ch_bam_index = ch_indexed_bam.indexed_bam.combine(ch_indexed_bam.index)
@@ -178,7 +203,11 @@ workflow {
     ch_bam_fasta = ch_bam_index.combine(ch_fasta)
 
     // Combine also with the modkit parameters channel
-    ch_modkit_input = ch_bam_fasta.combine(ch_modkit_params)
+    ch_bam_fasta_params = ch_bam_fasta.combine(ch_modkit_params)
+
+    // Combine also with the modification type
+    ch_mod_type = Channel.value(mod_type)
+    ch_modkit_input = ch_bam_fasta_params.combine(ch_mod_type)
 
     // Run modkit for each parameter combination
     ch_modkit_output = MODKIT_PILEUP(ch_modkit_input)
@@ -196,7 +225,7 @@ workflow {
      */
 
     // Create a channel for the reference annotation
-    ch_annotation = channel.fromPath(params.annotation, checkIfExists: true)
+    ch_annotation = channel.fromPath(annotation, checkIfExists: true)
 
     // Combine the annotation with the bed file channel
     ch_t2g_input = ch_bed_params.combine(ch_annotation)

@@ -8,7 +8,8 @@ process MODKIT_PILEUP {
           path(index),
           path(fasta),
           val(filter_threshold),
-          val(mod_threshold)
+          val(mod_threshold),
+          val(mod_type)
 
     output:
     path "modkit_pileup_${filter_threshold}_${mod_threshold}.bed" , emit: modkit_bed
@@ -32,8 +33,8 @@ process MODKIT_PILEUP {
       inosine: '17596'
     ]
 
-    def canonical_base = canonical_base_map[params.mod_type]
-    def mod_code = mod_code_map[params.mod_type]
+    def canonical_base = canonical_base_map[mod_type]
+    def mod_code = mod_code_map[mod_type]
 
     def filter_opt = filter_threshold == 'default' ? '' :
                       "--filter-threshold ${canonical_base}:${filter_threshold}"
@@ -45,7 +46,7 @@ process MODKIT_PILEUP {
     ${params.modkit} pileup ${bam} \\
         "modkit_pileup_${filter_threshold}_${mod_threshold}.bed" \\
         --threads ${task.cpus} \\
-        --modified-bases ${params.mod_type} \\
+        --modified-bases ${mod_type} \\
         --with-header \\
         ${filter_opt} \\
         ${mod_opt} \\
