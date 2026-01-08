@@ -21,6 +21,7 @@
 
 nextflow.enable.dsl = 2
 
+include { INSTALL_ENV      } from './modules/install_env.nf'
 include { SAMTOOLS_FILTER  } from './modules/samtools_filter.nf'
 include { SAMTOOLS_SORT    } from './modules/samtools_sort.nf'
 include { SAMTOOLS_INDEX   } from './modules/samtools_index.nf'
@@ -60,17 +61,33 @@ def helpMessage() {
 }
 
 workflow {
+    /*
+     * =========================================================================
+     *  Help message
+     * =========================================================================
+     */
+    if (params.help) {
+      helpMessage()
+      return
+    }
+
+    /*
+     * =========================================================================
+     *  Install mode
+     * =========================================================================
+     */
+    if (params.install) {
+        INSTALL_ENV(true)
+        return
+    }
 
     /*
      * =========================================================================
      *  Input validation
      * =========================================================================
      */
-    
-    if (params.help) {
-      helpMessage()
-      exit 0
-    }
+
+    // Required arguments
     if (!params.modbam) {
         exit 1, "ERROR: Please provide --modbam (.bam file output by modification caller)"
     }
@@ -89,7 +106,6 @@ workflow {
 
     // HPC parameters must be specified if using pbs, pbspro or slurm
     def hpcProfiles = ['pbs','pbspro','slurm']
-
     if (workflow.profile in hpcProfiles) {
         if (!params.hpc_project) {
             exit 1, "ERROR: --hpc_project must be specified when using profile '${workflow.profile}'."
