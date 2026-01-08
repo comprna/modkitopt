@@ -57,6 +57,7 @@ def helpMessage() {
 
         Optional arguments:
          --truth_sites        .tsv file containing known modification sites (genomic coordinates, expected columns 1 and 2: [chr, pos], mandatory if mod_type is m5C or inosine)
+         --top_outdir         Path to preferred output directory (default: 'results')
         """
 }
 

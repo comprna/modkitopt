@@ -203,28 +203,29 @@ nextflow run main.nf                                           \
 Usage:
 The typical command structure for running the pipeline is as follows:
 nextflow run main.nf --modbam sample.bam
-                      --mod_type <m6A|pseU|m5C|inosine>
-                      --modkit /path/to/modkit
-                      --fasta /path/to/transcriptome.fa
-                      --annotation /path/to/annotation.gff3
-                      -profile <local|pbs|pbspro|slurm>
+                     --mod_type <m6A|pseU|m5C|inosine>
+                     --modkit /path/to/modkit
+                     --fasta /path/to/transcriptome.fa
+                     --annotation /path/to/annotation.gff3
+                     -profile <local|pbs|pbspro|slurm>
 
 Mandatory arguments:
-  --modbam             .bam file containing per-read modification calls
-  --mod_type           Modification type (options: m6A, pseU, m5C, inosine)
-  --modkit             Path to modkit executable
-  --fasta              Path to reference transcriptome
-  --annotation         Path to corresponding reference annotation (.gtf or .gff3)
-  -profile             Execution environment (options: local, pbs, pbspro, slurm)
+    --modbam             .bam file containing per-read modification calls
+    --mod_type           Modification type (options: m6A, pseU, m5C, inosine)
+    --modkit             Path to modkit executable
+    --fasta              Path to reference transcriptome
+    --annotation         Path to corresponding reference annotation (.gtf or .gff3)
+    -profile             Execution environment (options: local, pbs, pbspro, slurm)
 
 Mandatory arguments if running on an HPC system (-profile is pbs, pbspro or slurm):
-  --hpc_queue          Name of the queue that Nextflow can schedule jobs to (e.g., 'normal')
-  --hpc_project        HPC project code that Nextflow can schedule jobs to (e.g., 'ab12')
-  --hpc_storage        HPC storage location that outputs can be written to (e.g., 'gdata/ab12')
-  --help               This usage statement
+    --hpc_queue          Name of the queue that Nextflow can schedule jobs to (e.g., 'normal')
+    --hpc_project        HPC project code that Nextflow can schedule jobs to (e.g., 'ab12')
+    --hpc_storage        HPC storage location that outputs can be written to (e.g., 'gdata/ab12')
+    --help               This usage statement
 
 Optional arguments:
-  --truth_sites        .tsv file containing validated modification sites (genomic 1-based coordinates, expected columns 1 and 2: [chr, pos], mandatory if mod_type is m5C or inosine)
+    --truth_sites        .tsv file containing known modification sites (genomic coordinates, expected columns 1 and 2: [chr, pos], mandatory if mod_type is m5C or inosine)
+    --top_outdir         Path to preferred output directory (default: 'results')
 ```
 
 # Output details
