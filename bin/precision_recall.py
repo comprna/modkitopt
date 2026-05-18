@@ -18,14 +18,15 @@ def main():
     args = parser.parse_args()
 
     # Load ground truth sites
-    truth_sites = set()
+    truth_sites_all = set()
     with open(args.truth,"r") as f:
         f.readline()
         for line in f:
             fields = line.split("\t")
             seqname = fields[0].lstrip("chr")
             site = fields[1]
-            truth_sites.add(f"{seqname}_{site}")
+            truth_sites_all.add(f"{seqname}_{site}")
+    truth_sites_seen = set()
 
     # Parse predicted sites in input BED file
     preds_validated = {} # Predicted sites that are also in the ground truth sites
@@ -65,7 +66,8 @@ def main():
             else:
                 preds_all[pred_site] = [stoich * coverage, coverage]
 
-            if pred_site in truth_sites:
+            if pred_site in truth_sites_all:
+                truth_sites_seen.add(pred_site)
                 if pred_site in preds_validated:
                     pred_sum, cov_sum = preds_validated[pred_site]
                     pred_sum += stoich * coverage
@@ -85,7 +87,7 @@ def main():
     # Initialise stoichiometry thresholds
     thresholds = [t / 1000 for t in range(0, 1000)]
 
-    # Get n validated sites predicted per threshold
+    # Get number of validated sites predicted per threshold
     index_p, index_t = 0, 0
     out_vals = []
     while index_p < len(p_validated) and index_t < len(thresholds):
@@ -96,7 +98,7 @@ def main():
         else:
             index_t += 1
             n_true_positives = len(p_validated) - index_p # No. of predictions that exceed the threshold
-            recall = n_true_positives / len(truth_sites)
+            recall = n_true_positives / len(truth_sites_seen)
             out_vals.append([thresh, recall, n_true_positives])
 
     while index_t < len(thresholds):
@@ -104,7 +106,7 @@ def main():
         out_vals.append([thresh, 0, 0])
         index_t += 1
 
-    # Get n sites (total, not just validated sites) predicted per threshold
+    # Get number of sites (total, not just validated sites) predicted per threshold
     index_p, index_t = 0, 0
     out_vals_all = []
     while index_p < len(p_all) and index_t < len(thresholds):
