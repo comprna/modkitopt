@@ -48,7 +48,6 @@ ds_to_plot <- map_dfr(ds_list, bind_rows)
 ################################################################################
 
 ds_to_plot %>%
-  filter(params != "default, default") %>%
   group_by(params) %>%
   slice_max(f1, n = 1, with_ties = FALSE) %>%
   ungroup() %>%
