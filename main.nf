@@ -29,6 +29,7 @@ include { MODKIT_PILEUP    } from './modules/modkit_pileup.nf'
 include { T2G              } from './modules/t2g.nf'
 include { PRECISION_RECALL } from './modules/precision_recall.nf'
 include { COMPARE_PARAMS   } from './modules/compare_params.nf'
+include { OUTPUT_SITES     } from './modules/output_sites.nf'
 
 def helpMessage() {
   log.info """
@@ -257,7 +258,7 @@ workflow {
 
     /*
      * =========================================================================
-     *  Compare performance of modkit parameters
+     *  Compare performance of modkit parameters and stoich cutoffs
      * =========================================================================
      */
 
@@ -267,4 +268,16 @@ workflow {
     ch_best_params = COMPARE_PARAMS(ch_prec_recall_collected)
     ch_best_params.out_string.view()
 
+    /*
+     * =========================================================================
+     *  Output sites called using optimal parameters
+     * =========================================================================
+     */
+
+    //
+    OUTPUT_SITES(ch_best_params.best_params, ch_modkit_output.modkit_bed.collect())
+
+    print("\n\nThe bedMethyl file produced by modkit pileup using the optimal thresholds has been written to the directory 'results/5_outputs/'.")
+
+    print("\nTo filter sites by the optimal stoichiometry cutoff, remember to convert stoich_cutoff from a fraction to a percent before filtering the bedMethyl file by percent_modified.")
 }

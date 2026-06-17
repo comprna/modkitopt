@@ -3,13 +3,14 @@ process COMPARE_PARAMS {
 
     conda './env.yaml'
 
-    publishDir "${params.top_outdir}/5_compare_params", mode: 'copy'
+    publishDir "${params.top_outdir}/5_outputs", mode: 'copy'
 
     input:
     path(precision_recall_results)
 
     output:
-    path "barplot.png" , emit: barplot
+    path "best_params.tsv" , emit: best_params
+    path "ADVANCED_barplot.png" , emit: barplot
     path "ADVANCED_pr_curves.png" , emit: pr_curves
     path "ADVANCED_scatterplot.png" , emit: scatterplot
     path "ADVANCED_best_f1_scores.tsv" , emit: best_f1_scores
@@ -17,6 +18,6 @@ process COMPARE_PARAMS {
 
     script:
     """
-    compare_params.R ${precision_recall_results} ADVANCED_best_f1_scores.tsv ADVANCED_pr_curves.png barplot.png ADVANCED_scatterplot.png
+    compare_params.R ${precision_recall_results} best_params.tsv ADVANCED_best_f1_scores.tsv ADVANCED_pr_curves.png ADVANCED_barplot.png ADVANCED_scatterplot.png
     """
 }
