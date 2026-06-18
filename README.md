@@ -1,14 +1,14 @@
 # ModkitOpt
 
-ModkitOpt finds the best `--mod-threshold` and `--filter-threshold` parameters to use when running `modkit pileup`, and the best stoichiometry cutoff for filtering modkit's bedMethyl output, to maximise the precision and recall of nanopore direct RNA modification calls.
+ModkitOpt finds the best `--mod-threshold` and `--filter-threshold` parameters to use when running `modkit pileup` on a given nanopore dataset, and the best stoichiometry cutoff for filtering modkit's bedMethyl output, to maximise the precision and recall of nanopore direct RNA modification calls.
 
 ### Why use ModkitOpt?
 
-By default, modkit uses a heuristic and unvalidated algorithm for quantifying RNA modifications, which can mislead reporting of RNA modification landscapes. ModkitOpt identifies optimised settings (`--mod-threshold`, `--filter-threshold` and stoichiometry cutoff) that rescue modkit performance, substantially increasing the acccuracy of RNA modification landscapes. Further details about modkit's default heuristic and ModkitOpt can be found in our paper, cited below.
+By default, modkit uses a heuristic and unvalidated algorithm for estimating RNA modification stoichiometry, which can can lead to suboptimal site calling. ModkitOpt identifies optimised settings (`--mod-threshold`, `--filter-threshold` and stoichiometry cutoff) that rescue modkit performance, substantially increasing the acccuracy of RNA modification landscapes. Further details about modkit's default heuristic and ModkitOpt can be found in our paper, cited below.
 
 ### How ModkitOpt works
 
-ModkitOpt takes as input a modBAM file containing dorado per-read modification calls, efficiently and systematically scans 36,000 combinations of modkit thresholds (`--filter-threshold` and `--mod-threshold`) and downstream stoichiometry cutoffs, and evaluates predicted sites against validated reference sites to quantify precision and recall. ModkitOpt identifies the optimal threshold combination, and corresponding stoichiometry cutoff, that maximises the F1 score ( $2 \cdot precision \cdot recall/(precision+recall)$ ).
+ModkitOpt takes as input a modBAM file containing dorado per-read modification calls, efficiently and systematically scans 36,000 combinations of modkit thresholds (`--filter-threshold` and `--mod-threshold`) and downstream stoichiometry cutoffs, and evaluates predicted sites against validated reference sites to quantify precision and recall. ModkitOpt identifies the optimal threshold combination, and corresponding stoichiometry cutoff, that maximises the F1 score ( $2 \cdot precision \cdot recall/(precision+recall)$ ), and outputs the bedMethyl file produced by modkit pileup using optimal thresholds, as well as advising the stoichiometry cutoff to use for filtering the bedMethyl file.
 
 Validated reference sites are supplied for mammalian N6-methyladenosine (m6A) and pseudouridine (pseU), which can be used for nanopore datasets that originate from a different biological sample, provided a subset of validated sites are shared. For other modification types, validated sites can be supplied by the user.
 
@@ -220,28 +220,9 @@ Optional arguments:
 
 # Output details
 
-1. The optimal --filter_threshold, --mod_threshold and stoichiometry cutoff to use are written to standard out:
+1. The optimal --filter_threshold, --mod_threshold and stoichiometry cutoff to use are written to the console and saved to `results/5_outputs/best_params.tsv`.
 
-```bash
-The optimal modkit pileup parameters are:
-
- >>> filter_threshold:  0.5
- >>> mod_threshold:     0.99
-
- With the optimal stoichiometry cutoff to classify modified sites:
-
- >>> Threshold: 0.086
-
- Achieving an F1 score of 0.008
-```
-
-2. A bar plot showing performance across the parameter space is written to `results/5_compare_params/barplot.png`
-
-E.g.:
-
-<p align="left">
-  <img src="images/barplot.png" width="1000">
-</p>
+2. The bedMethyl file produced using the optimal modkit thresholds is written to `results/5_outputs/`.
 
 See below for [Advanced outputs](#advanced-outputs)
 
@@ -302,9 +283,17 @@ nextflow run main.nf                                           \
 
 ## Advanced outputs
 
-For users who would like more detailed outputs, ModkitOpt also provides:
+For users who would like more detailed outputs, ModkitOpt also provides several plots in `results/5_outputs/`
 
-1. A plot showing the F1 scores across the threshold space is written to `results/5_compare_params/ADVANCED_scatterplot.tsv`
+1. A bar plot showing performance across the parameter space: ADVANCED_barplot.png
+
+E.g.:
+
+<p align="left">
+  <img src="images/barplot.png" width="1000">
+</p>
+
+2. A plot showing the F1 scores across the threshold space: ADVANCED_scatterplot.png
 
 E.g.:
 
@@ -312,7 +301,7 @@ E.g.:
   <img src="images/scatterplot.png" width="350">
 </p>
 
-2. A plot showing the precision-recall curves for every tested threshold combination is written to `results/5_compare_params/ADVANCED_pr_curves.tsv`
+3. A plot showing the precision-recall curves for every tested threshold combination: ADVANCED_pr_curves.png
 
 E.g.:
 
@@ -320,7 +309,7 @@ E.g.:
   <img src="images/pr_curves.png" width="500">
 </p>
 
-3. A tsv file with F1 score, precision and recall for each threshold combination (with the corresponding optimal stoichiometry cutoff per threshold combination) is written to `results/5_compare_params/ADVANCED_best_f1_scores.tsv`
+4. A tsv file with F1 score, precision and recall for each threshold combination (with the corresponding optimal stoichiometry cutoff per threshold combination): ADVANCED_best_f1_scores.tsv
 
 E.g.:
 
