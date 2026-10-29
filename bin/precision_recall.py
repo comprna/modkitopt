@@ -24,7 +24,7 @@ def main():
         for line in f:
             fields = line.split("\t")
             seqname = fields[0].lstrip("chr")
-            site = fields[1]
+            site = fields[1].rstrip()
             truth_sites_all.add(f"{seqname}_{site}")
     truth_sites_seen = set()
 
