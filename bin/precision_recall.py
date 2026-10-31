@@ -11,6 +11,10 @@ def main():
                         help="Ground truth sites (genomic) with first two columns:\n"
                             "chr pos",
                         required=True)
+    parser.add_argument("-e", "--exclude",
+                        help="Sites to exclude from analysis with first two columns:\n"
+                            "chr pos",
+                        required=True)
     parser.add_argument("-o", "--output",
                         help="Predicted sites validated by ground truth, with columns:\n"
                             "chr pos0 pos1",
@@ -26,6 +30,17 @@ def main():
             seqname = fields[0].lstrip("chr")
             site = fields[1]
             truth_sites.add(f"{seqname}_{site}")
+
+    # Load exclude sites (these are the validated sites not in test so that precision
+    # isn't falsely low)
+    exclude_sites = set()
+    with open(args.exclude,"r") as f:
+        f.readline()
+        for line in f:
+            fields = line.split("\t")
+            seqname = fields[0].lstrip("chr")
+            site = fields[1]
+            exclude_sites.add(f"{seqname}_{site}")
 
     # Parse predicted sites in input BED file
     preds_validated = {} # Predicted sites that are also in the ground truth sites
@@ -53,6 +68,10 @@ def main():
 
             # Convert stoichiometry from % to fraction
             stoich = stoich / 100
+
+            # Do not consider sites in exclude list
+            if pred_site in exclude_sites:
+                continue
 
             # Aggregate transcriptomic sites corresponding to the same genomic
             # site by taking the average stoichiometry across transcriptomic

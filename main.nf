@@ -158,6 +158,9 @@ workflow {
         truth_sites = params.truth_sites
     }
 
+    // Quick and dirty: Exclude sites
+    exclude_sites = params.exclude_sites
+
     // HPC parameters must be specified if using pbs, pbspro or slurm
     def hpcProfiles = ['pbs','pbspro','slurm']
     if (workflow.profile in hpcProfiles) {
@@ -250,11 +253,15 @@ workflow {
     // Create a channel for the ground truth sites
     ch_truth = channel.fromPath(truth_sites, checkIfExists: true)
 
+    // Create a channel for the exclude sites
+    ch_exclude = channel.fromPath(exclude_sites, checkIfExists: true)
+
     // Combine the channels for ground truth sites and modkit sites
     ch_eval_params_input = ch_genomic_params.combine(ch_truth)
+    ch_eval_params_input_exclude = ch_eval_params_input.combine(ch_exclude)
 
     // Evaluate precision and recall
-    ch_prec_recall = PRECISION_RECALL(ch_eval_params_input)
+    ch_prec_recall = PRECISION_RECALL(ch_eval_params_input_exclude)
 
     /*
      * =========================================================================
