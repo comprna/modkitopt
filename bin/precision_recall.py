@@ -39,8 +39,17 @@ def main():
         for line in f:
             fields = line.split("\t")
             seqname = fields[0].lstrip("chr")
-            site = fields[1]
+            site = fields[1].rstrip()
             exclude_sites.add(f"{seqname}_{site}")
+
+    # Sanity check
+    print("Number of test truth sites:", len(truth_sites))
+    print("Number of exclude sites:", len(exclude_sites))
+
+    overlap = truth_sites.intersection(exclude_sites)
+
+    print("Overlap between test truth and exclude sites:", len(overlap))
+    print("Example overlapping sites:", list(overlap)[:10])
 
     # Parse predicted sites in input BED file
     preds_validated = {} # Predicted sites that are also in the ground truth sites
