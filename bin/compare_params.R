@@ -16,7 +16,8 @@ library(tidyr)
 ################################################################################
 
 args            <- commandArgs(trailingOnly = TRUE)
-files           <- head(args, -4) # Results files, one per modkit parameter set
+files           <- head(args, -5) # Results files, one per modkit parameter set
+out_params      <- tail(args, 5)[1] # 5th last arg is the filepath to write optimal params
 out_tsv         <- tail(args, 4)[1] # 4th last arg is the filepath to write F1 scores
 out_pr_plot     <- tail(args, 3)[1] # 3rd last arg is the precision-recall curve filepath
 out_barplot     <- tail(args, 2)[1] # 2nd last arg is the barplot filepath
@@ -52,9 +53,18 @@ ds_to_plot %>%
   slice_max(f1, n = 1, with_ties = FALSE) %>%
   ungroup() %>%
   relocate(params, threshold, precision, recall, f1) %>%
-  arrange(desc(f1)) %T>%
-  write_tsv(out_tsv) ->
+  arrange(desc(f1)) ->
 best_f1
+
+# Write outputs
+best_f1 %>%
+  separate_wider_delim(params, delim = ", ", names = c("filter_threshold", "mod_threshold")) %>%
+  rename(stoich_cutoff = threshold,
+         f1_score = f1) %>%
+  mutate(f1_score = round(f1_score, 5)) %T>%
+  write_tsv(out_tsv) %>%
+  slice_max(f1_score) %>%
+  write_tsv(out_params)
 
 # We only want to label the top F1 score on the plot to avoid clutter
 f1_to_plot <- best_f1 %>% filter(f1 == max(f1))
@@ -165,33 +175,15 @@ ggsave(out_scatterplot, height = 4, width = 4)
 # Return the modkit parameters and stoichiometry threshold that gives best F1
 ################################################################################
 
-best_threshold <- best_f1 %>% slice_max(f1) %>% pull(threshold)
-best_precision <- best_f1 %>% slice_max(f1) %>% pull(precision)
-best_recall    <- best_f1 %>% slice_max(f1) %>% pull(recall)
-best_f1_value  <- best_f1 %>% slice_max(f1) %>% pull(f1)
-best_params    <- best_f1 %>% slice_max(f1) %>% pull(params)
+best_f1 %>%
+  separate_wider_delim(params, delim = ", ", names = c("filter_threshold", "mod_threshold")) %>%
+  rename(stoich_cutoff = threshold,
+         f1_score = f1) %>%
+  mutate(f1_score = round(f1_score, 5)) %>%
+  slice_max(f1_score) %>%
+  select(-c(precision, recall, f1_score)) ->
+best_params
 
-# Extract best individual modkit parameters
-best_filter_threshold <- str_split_i(best_params, ",", 1)
-best_mod_threshold    <- str_split_i(best_params, " ", 2)
-
-if (length(best_params) > 1)
-{
-  output <- "\n\nThe optimal modkit pileup parameters are as follows"
-  output <- paste(output, "(in this case, more than one parameter set achieved the highest F1 score):\n\n")
-  output <- paste(output, glue(">>> filter_threshold:\t{best_filter_threshold}\n\n"))
-  output <- paste(output, glue(">>> mod_threshold:\t{best_mod_threshold}\n\n\n"))
-  output <- paste(output, glue("With the optimal stoichiometry cutoff to classify modified sites:\n\n\n"))
-  output <- paste(output, glue(">>> Threshold: {best_threshold}\n\n\n"))
-  output <- paste(output, glue("Achieving an F1 score of {round(best_f1_value, 3)}\n\n"))
-} else
-{
-  output <- "\n\nThe optimal modkit pileup parameters are:\n\n"
-  output <- paste(output, glue(">>> filter_threshold:\t{best_filter_threshold}\n\n"))
-  output <- paste(output, glue(">>> mod_threshold:\t{best_mod_threshold}\n\n\n"))
-  output <- paste(output, glue("With the optimal stoichiometry cutoff to classify modified sites:\n\n\n"))
-  output <- paste(output, glue(">>> Threshold: {best_threshold}\n\n\n"))
-  output <- paste(output, glue("Achieving an F1 score of {round(best_f1_value, 3)}\n\n"))
-}
-
-cat(output)
+cat("\n\nThe optimal parameters are:\n\n")
+print(as.data.frame(best_params), row.names = FALSE)
+cat("\nIf multiple parameters are optimal, that means they achieved the same F1 score.")
