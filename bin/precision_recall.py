@@ -28,7 +28,7 @@ def main():
         for line in f:
             fields = line.split("\t")
             seqname = fields[0].lstrip("chr")
-            site = fields[1]
+            site = fields[1].rstrip()
             truth_sites.add(f"{seqname}_{site}")
 
     # Load exclude sites (these are the validated sites not in test so that precision
