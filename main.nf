@@ -132,7 +132,7 @@ workflow {
     }
 
     // Validate modification type
-    assert mod_type in ['m6A','pseU','m5C','inosine'], \
+    assert mod_type in ['m6A','pseU','m5C','inosine']:
         "Modification type not recognised, choose from: m6A, pseU, m5C, inosine"
 
     // Validate ground truth
