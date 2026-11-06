@@ -40,7 +40,7 @@ def helpMessage() {
                              --modkit /path/to/modkit
                              --fasta /path/to/transcriptome.fa
                              --annotation /path/to/annotation.gff3
-                             -profile <local|pbs|pbspro|slurm>
+                             -profile <local|pbs|pbspro|slurm|htcondor>
 
         Mandatory arguments:
          --modbam             .bam file containing per-read modification calls
@@ -48,13 +48,16 @@ def helpMessage() {
          --modkit             Path to modkit executable
          --fasta              Path to reference transcriptome
          --annotation         Path to corresponding reference annotation (.gtf or .gff3)
-         -profile             Execution environment (options: local, pbs, pbspro, slurm)
+         -profile             Execution environment (options: local, pbs, pbspro, slurm, htcondor)
 
         Mandatory arguments if running on an HPC system (-profile is pbs, pbspro or slurm):
          --hpc_queue          Name of the queue that Nextflow can schedule jobs to (e.g., 'normal')
          --hpc_project        HPC project code that Nextflow can schedule jobs to (e.g., 'ab12')
          --hpc_storage        HPC storage location that outputs can be written to (e.g., 'gdata/ab12')
          --help               This usage statement
+
+        HTCondor-specific optional arguments (-profile is htcondor):
+         --htcondor_options   Extra HTCondor submit directives, semicolon-separated
 
         Optional arguments:
          --truth_sites        .tsv file containing known modification sites (genomic coordinates, expected columns 1 and 2: [chr, pos], mandatory if mod_type is m5C or inosine)
