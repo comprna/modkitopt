@@ -41,7 +41,7 @@ def main():
 
             # Only consider sites with coverage at least 20 reads
             coverage = int(coverage)
-            if coverage < 20:
+            if coverage < 10:
                 continue
 
             # Some m6A stoichiometry predictors output None
