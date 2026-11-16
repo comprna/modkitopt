@@ -72,11 +72,10 @@ f1_to_plot <- best_f1 %>% filter(f1 == max(f1))
 theme_set(theme_classic())
 n_colours <- length(unique(ds_to_plot$params))
 ds_to_plot %>%
-  filter(params != "default, default") %>%
   ggplot(aes(x = recall, y = precision, colour = params)) +
     geom_line() +
     geom_point(data = best_f1, size = 3) +
-    scale_color_paletteer_d("Polychrome::palette36") +
+    scale_color_manual(values = c(paletteer::paletteer_d("Polychrome::palette36") %>% as.character(), "black")) +
     geom_label_repel(data = f1_to_plot,
                      aes(label = sprintf("%s\nthreshold = %.3f\nF1 = %.3f",
                                          params,
