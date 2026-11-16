@@ -10,7 +10,7 @@ By default, modkit uses a heuristic and unvalidated algorithm for estimating RNA
 
 ModkitOpt takes as input a modBAM file containing dorado per-read modification calls, efficiently and systematically scans 36,000 combinations of modkit thresholds (`--filter-threshold` and `--mod-threshold`) and downstream stoichiometry cutoffs, and evaluates predicted sites against validated reference sites to quantify precision and recall. ModkitOpt identifies the optimal threshold combination, and corresponding stoichiometry cutoff, that maximises the F1 score ( $2 \cdot precision \cdot recall/(precision+recall)$ ), and outputs the bedMethyl file produced by modkit pileup using optimal thresholds, as well as advising the stoichiometry cutoff to use for filtering the bedMethyl file.
 
-Validated reference sites are supplied for mammalian N6-methyladenosine (m6A) and pseudouridine (pseU), which can be used for nanopore datasets that originate from a different biological sample, provided a subset of validated sites are shared. For other modification types, validated sites can be supplied by the user.
+Validated reference sites are supplied for mammalian N6-methyladenosine (m6A) and pseudouridine (pseU), which can be used for nanopore datasets that originate from a different biological sample, provided a subset of validated sites are shared (practical recommendations [below](#should-i-run-modkitopt-or-use-the-reported-parameters)). For other modification types, validated sites can be supplied by the user.
 
 <p align="center">
   <img src="images/design.png" width="1000">
@@ -18,7 +18,7 @@ Validated reference sites are supplied for mammalian N6-methyladenosine (m6A) an
 
 ### Should I run ModkitOpt or use the reported parameters?
 
-We show that ModkitOpt substantially improves site-calling performance when only 5% of orthogonally validated sites shared with a nanopore sample are used for parameter optimisation, with the optimal site calling parameters remaining largely consistent down to an overlap size of 5% (see [manuscript](#citation) for details).
+We show that ModkitOpt substantially improves site-calling performance for m6A and pseU when only 5% of orthogonally validated sites shared with a nanopore sample are used for parameter optimisation, with the optimal site calling parameters remaining largely consistent down to an overlap size of 5% (see [manuscript](#citation) for details).
 
 The optimal site calling parameters for each dorado version across three human cell lines is summarised below (see [manuscript](#citation) for details):
 
