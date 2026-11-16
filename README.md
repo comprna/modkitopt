@@ -20,7 +20,7 @@ Validated reference sites are supplied for mammalian N6-methyladenosine (m6A) an
 
 We show that ModkitOpt substantially improves site-calling performance when only 5% of orthogonally validated sites shared with a nanopore sample are used for parameter optimisation, with the optimal site calling parameters remaining largely consistent down to an overlap size of 5% (see [manuscript](#citation) for details).
 
-In addition, the optimal site calling parameters were shown to be relatively consistent per dorado version across human cell lines (summarised below, detailed in the [manuscript](#citation)):
+The optimal site calling parameters for each dorado version across three human cell lines is summarised below (see [manuscript](#citation) for details):
 
 | mod_type | dorado_version | best --filter-threshold | best --mod-threshold | best stoich cutoff |
 | -------- | -------------- | ----------------------- | -------------------- | ------------------ |
@@ -35,7 +35,7 @@ In addition, the optimal site calling parameters were shown to be relatively con
 | pseU     | 1.4            | 0.5, 0.95, 0.99         | 0.99                 | 0.052-0.112        |
 | pseU     | 2.0            | 0.9, 0.95               | 0.995                | 0.051-0.087        |
 
-We recommend applying the above dorado-specific parameters when you have a sample that is expected to share modification sites with the orthogonally validated sites, and where a set of more representative orthogonally validated sites is available, we recommend using these to run ModkitOpt.
+We recommend applying the above dorado-version-specific optimised parameters when at least 5% of sites in both the nanopore sample and orthogonal validation dataset are shared; below this, ModkitOpt should be applied using a more representative orthogonal validation dataset, where available.
 
 # Citation
 
