@@ -4,7 +4,7 @@ ModkitOpt finds the best `--mod-threshold` and `--filter-threshold` parameters t
 
 ### Why use ModkitOpt?
 
-By default, modkit uses a heuristic and unvalidated algorithm for estimating RNA modification stoichiometry, which can can lead to suboptimal site calling. ModkitOpt identifies optimised settings (`--mod-threshold`, `--filter-threshold` and stoichiometry cutoff) that rescue modkit performance, substantially increasing the acccuracy of RNA modification landscapes. Further details about modkit's default heuristic and ModkitOpt can be found in our paper, cited below.
+By default, modkit uses a heuristic and unvalidated algorithm for estimating RNA modification stoichiometry, which can can lead to suboptimal site calling. ModkitOpt identifies optimised settings (`--mod-threshold`, `--filter-threshold` and stoichiometry cutoff) that rescue modkit performance, substantially increasing the acccuracy of RNA modification landscapes. Further details ModkitOpt can be found in the manuscript cited below.
 
 ### How ModkitOpt works
 
@@ -16,11 +16,32 @@ Validated reference sites are supplied for mammalian N6-methyladenosine (m6A) an
   <img src="images/design.png" width="1000">
 </p>
 
+### Should I run ModkitOpt or use the reported parameters?
+
+We show that ModkitOpt substantially improves site-calling performance when only 5% of orthogonally validated sites shared with a nanopore sample are used for parameter optimisation, with the optimal site calling parameters remaining largely consistent down to an overlap size of 5% (see [manuscript](#citation) for details).
+
+In addition, the optimal site calling parameters were shown to be relatively consistent per dorado version across human cell lines (summarised below, detailed in the [manuscript](#citation)):
+
+| mod_type | dorado_version | best --filter-threshold | best --mod-threshold | best stoich cutoff |
+| -------- | -------------- | ----------------------- | -------------------- | ------------------ |
+| m6A      | 0.7            | 0.5                     | 0.99                 | 0.066-0.084        |
+| m6A      | 0.8            | 0.5                     | 0.99                 | 0.055-0.078        |
+| m6A      | 1.0            | 0.5                     | 0.99                 | 0.063-0.072        |
+| m6A      | 1.4            | 0.5                     | 0.95                 | 0.058-0.078        |
+| m6A      | 2.0            | 0.5                     | 0.95                 | 0.077-0.092        |
+| pseU     | 0.7            | 0.5                     | 0.995                | 0.065-0.101        |
+| pseU     | 0.8            | 0.5                     | 0.995                | 0.063-0.108        |
+| pseU     | 1.0            | 0.5                     | 0.995                | 0.059-0.106        |
+| pseU     | 1.4            | 0.5, 0.95, 0.99         | 0.99                 | 0.052-0.112        |
+| pseU     | 2.0            | 0.9, 0.95               | 0.995                | 0.051-0.087        |
+
+We recommend applying the above dorado-specific parameters when you have a sample that is expected to share modification sites with the orthogonally validated sites, and where a set of more representative orthogonally validated sites is available, we recommend using these to run ModkitOpt.
+
 # Citation
 
 If you use this software, please cite:
 
-> Sneddon, Prodic & Eyras. (2025). *Resolving systematic bias in nanopore-based RNA modification detection*. bioRxiv preprint. DOI: 10.64898/2025.12.19.695383
+> Sneddon, Prodic & Eyras. (2025). *ModkitOpt: An optimised workflow for RNA modification stoichiometry estimation and site calling from nanopore sequencing*. bioRxiv preprint. DOI: 10.64898/2025.12.19.695383
 
 # Quick start
 
@@ -199,6 +220,7 @@ nextflow run main.nf --modbam sample.bam
                      --modkit /path/to/modkit
                      --fasta /path/to/transcriptome.fa
                      --annotation /path/to/annotation.gff3
+                     -profile <local|pbs|pbspro|slurm|htcondor>
 
 Mandatory arguments:
     --modbam             .bam file containing per-read modification calls
@@ -206,12 +228,16 @@ Mandatory arguments:
     --modkit             Path to modkit executable
     --fasta              Path to reference transcriptome
     --annotation         Path to corresponding reference annotation (.gtf or .gff3)
+    -profile             Execution environment (options: local, pbs, pbspro, slurm, htcondor)
 
 Mandatory arguments if running on an HPC system (-profile is pbs, pbspro or slurm):
     --hpc_queue          Name of the queue that Nextflow can schedule jobs to (e.g., 'normal')
     --hpc_project        HPC project code that Nextflow can schedule jobs to (e.g., 'ab12')
     --hpc_storage        HPC storage location that outputs can be written to (e.g., 'gdata/ab12')
     --help               This usage statement
+
+HTCondor-specific optional arguments (-profile is htcondor):
+    --htcondor_options   Extra HTCondor submit directives, semicolon-separated
 
 Optional arguments:
     --truth_sites        .tsv file containing known modification sites (genomic coordinates, expected columns 1 and 2: [chr, pos], mandatory if mod_type is m5C or inosine)
@@ -313,10 +339,10 @@ E.g.:
 
 E.g.:
 
-| params | threshold | precision | recall | f1 |
-| ------ | --------- | --------- | ------ | -- |
-| f: 0.5, m: 0.99  |	0.078 |	0.651 |	0.352 |	0.45693320039880353 |
-| f: 0.75, m: 0.99 |	0.085 |	0.66  |	0.344 |	0.4522709163346613  |
-| f: 0.5, m: 0.95  |	0.102 |	0.628 |	0.35  |	0.4494887525562372  |
-| f: 0.9, m: 0.99  |	0.09  |	0.658 |	0.339 |	0.4474663991975928  |
-| f: 0.95, m: 0.99 |	0.092 |	0.652 |	0.337 |	0.4443356926188069  |
+| filter_threshold | mod_threshold | stoich_cutoff | precision | recall | f1_score |
+| ---------------- | ------------- | ------------- | --------- | ------ | -------- |
+| 0.5              | 0.99          | 0.078         | 0.651     | 0.352  |	0.45693  |
+| 0.75             | 0.99          | 0.085         | 0.66      | 0.344  |	0.45227  |
+| 0.5              | 0.95          | 0.102         | 0.628     | 0.35   |	0.44948  |
+| 0.9              | 0.99          | 0.09          | 0.658     | 0.339  |	0.44746  |
+| 0.95             | 0.99          | 0.092         | 0.652     | 0.337  |	0.44433  |
