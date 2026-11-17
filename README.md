@@ -13,29 +13,32 @@ ModkitOpt takes as input a modBAM file containing dorado per-read modification c
 Validated reference sites are supplied for mammalian N6-methyladenosine (m6A) and pseudouridine (pseU), which can be used for nanopore datasets that originate from a different biological sample, provided a subset of validated sites are shared (practical recommendations [below](#should-i-run-modkitopt-or-use-the-reported-parameters)). For other modification types, validated sites can be supplied by the user.
 
 <p align="center">
-  <img src="images/design.png" width="1000">
+  <img src="images/design.png" width="800">
 </p>
 
 ### Should I run ModkitOpt or use the reported parameters?
 
 We show that ModkitOpt substantially improves site-calling performance for m6A and pseU when only 5% of orthogonally validated sites shared with a nanopore sample are used for parameter optimisation, with the optimal site calling parameters remaining largely consistent down to an overlap size of 5% (see [manuscript](#citation) for details).
 
-The optimal site calling parameters for each dorado version across three human cell lines is summarised below (see [manuscript](#citation) for details):
+The optimal site calling parameters for each dorado version across three human cell lines is summarised below (m6A: HEK293T, HepG2, K562; pseU: HeLa, HepG2, K562) (see [manuscript](#citation) for details):
 
-| mod_type | dorado_version | best --filter-threshold | best --mod-threshold | best stoich cutoff |
-| -------- | -------------- | ----------------------- | -------------------- | ------------------ |
-| m6A      | 0.7            | 0.5                     | 0.99                 | 0.066-0.084        |
-| m6A      | 0.8            | 0.5                     | 0.99                 | 0.055-0.078        |
-| m6A      | 1.0            | 0.5                     | 0.99                 | 0.063-0.072        |
-| m6A      | 1.4            | 0.5                     | 0.95                 | 0.058-0.078        |
-| m6A      | 2.0            | 0.5                     | 0.95                 | 0.077-0.092        |
-| pseU     | 0.7            | 0.5                     | 0.995                | 0.065-0.101        |
-| pseU     | 0.8            | 0.5                     | 0.995                | 0.063-0.108        |
-| pseU     | 1.0            | 0.5                     | 0.995                | 0.059-0.106        |
-| pseU     | 1.4            | 0.5, 0.95, 0.99         | 0.99                 | 0.052-0.112        |
-| pseU     | 2.0            | 0.9, 0.95               | 0.995                | 0.051-0.087        |
+| mod_type | dorado_version | best --filter-threshold                           | best --mod-threshold       | best stoich cutoff |
+| -------- | -------------- | ------------------------------------------------- | -------------------------- | ------------------ |
+| m6A      | 0.7            | **0.5** (all cell lines)                          | **0.99** (all cell lines)  | 0.066-0.084        |
+| m6A      | 0.8            | **0.5** (all cell lines)                          | **0.99** (all cell lines)  | 0.055-0.078        |
+| m6A      | 1.0            | **0.5** (all cell lines)                          | **0.99** (all cell lines)  | 0.063-0.072        |
+| m6A      | 1.0            | **0.5** (all cell lines)                          | **0.99** (all cell lines)  | 0.063-0.072        |
+| m6A      | 1.4            | **0.5** (all cell lines)                          | **0.95** (all cell lines)  | 0.058-0.078        |
+| m6A      | 2.0            | **0.5** (all cell lines)                          | **0.95** (all cell lines)  | 0.077-0.092        |
+| pseU     | 0.7            | **0.5** (all cell lines)                          | **0.995** (all cell lines) | 0.065-0.101        |
+| pseU     | 0.8            | **0.5** (all cell lines)                          | **0.995** (all cell lines) | 0.063-0.108        |
+| pseU     | 1.0            | **0.5** (all cell lines)                          | **0.995** (all cell lines) | 0.059-0.106        |
+| pseU     | 1.4            | **0.5** (HepG2), **0.95** (K562), **0.99** (HeLa) | **0.99** (all cell lines)  | 0.052-0.112        |
+| pseU     | 2.0            | **0.9** (HepG2), **0.95** (K562, HeLa)            | **0.995** (all cell lines) | 0.051-0.087        |
 
-We recommend applying the above dorado-version-specific optimised parameters when at least 5% of sites in both the nanopore sample and orthogonal validation dataset are shared; below this, ModkitOpt should be applied using a more representative orthogonal validation dataset, where available.
+**Recommendation for modkit threshold selection**: When at least 5% of sites in both the nanopore sample and orthogonal validation dataset are shared (our analysis of 6 human tissues showed that the site overlap between any two tissues is 16-75% for m6A and 11-46% for pseU - see [manuscript](#citation)), we recommend applying the above dorado-version-specific optimised parameters. When a smaller overlap is expected, ModkitOpt should be applied using a more representative orthogonal validation dataset, where available. Note that the validation datasets provided with ModkitOpt include GLORI-derived m6A sites in HEK293T cells and BACS-derived pseU sites in HeLa cells.
+
+**Recommendation for stoichiometry cutoff selection**: The best stoichiometry cutoff is consistently ~0.05-0.10 (i.e., 5-10%) across modification types, dorado versions and human cell lines. Users are recommended to select from the lower end of this range when prioritising recall, and the upper end when prioritising precision. To identify the specific stoichiometry cutoff that maximises F1 score (the harmonic mean of precision and recall) with respect to the validated sites for their given dataset, users are recommended to run ModkitOpt.
 
 # Citation
 
